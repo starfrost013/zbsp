@@ -10,6 +10,7 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -DUSE_ZLIB -O3 -s -Wl,--st
 
 # target environment location
 set(CMAKE_FIND_ROOT_PATH  /usr/x86_64-w64-mingw32)
+list (APPEND CMAKE_FIND_ROOT_PATH C:/users/mario/commonlib/x86_64-w64-mingw32) # wtf this is retarded who wrote this cmake file???
 
 # adjust the default behavior of the FIND_XXX() commands:
 # search programs in the host environment
