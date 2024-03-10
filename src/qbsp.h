@@ -1,6 +1,7 @@
 /*
 ===========================================================================
 Copyright (C) 1997-2006 Id Software, Inc.
+Copyright (C) 2024 starfrost
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -213,22 +214,8 @@ int32_t ApplyTexinfoOffset_UV(int32_t texinfoindex, const brush_texture_t *bt, c
 
 //=============================================================================
 
-void FindGCD(int32_t *v);
-
-mapbrush_t *Brush_LoadEntity(entity_t *ent);
 int32_t PlaneTypeForNormal(vec3_t normal);
-qboolean MakeBrushPlanes(mapbrush_t *b);
-int32_t FindIntPlane(int32_t *inormal, int32_t *iorigin);
-void CreateBrush(int32_t brushnum);
 
-//=============================================================================
-
-// draw.c
-
-extern vec3_t draw_mins, draw_maxs;
-
-void Draw_ClearWindow(void);
-void DrawWinding(winding_t *w);
 
 //=============================================================================
 
