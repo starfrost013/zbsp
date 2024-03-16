@@ -172,22 +172,14 @@ typedef struct {
 
 // upper design bounds
 // leaffaces, leafbrushes, planes, and verts are still bounded by
-// 16 bit short limits
-#define MAX_MAP_MODELS           1024
-#define MAX_MAP_BRUSHES          8192
-#define DEFAULT_MAP_ENTITIES     2048 // qb: from kmqbsp3- Knightmare- old limit
-#define MAX_MAP_ENTITIES         8192 // qb: KMQ2
-#define MAX_MAP_ENTSTRING        262144
-#define DEFAULT_MAP_TEXINFO      8192  // mxd: vanilla
-#define MAX_MAP_TEXINFO          16384 // mxd: KMQ2
-
+// 
 // qb: map bounds are +/- MAX
 #define DEFAULT_MAP_SIZE         4096
 #define MAX_MAP_SIZE             32768
 #define MAX_BLOCK_SIZE           8192
 #define MAX_POINTS_HASH          MAX_MAP_SIZE / 64
 
-// qb: qbsp limits
+// Zombono BSP limits
 #define MAX_MAP_AREAS           256
 #define MAX_MAP_AREAPORTALS     1024
 #define WARN_MAP_MODELS         32768
