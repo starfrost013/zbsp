@@ -698,20 +698,3 @@ void RecursiveLeafBitFlow(int32_t leafnum, byte *mightsee, byte *cansee) {
         RecursiveLeafBitFlow(p->leaf, newmight, cansee);
     }
 }
-
-/*
-==============
-BetterPortalVis
-==============
-*/
-void BetterPortalVis(int32_t portalnum) {
-    portal_t *p;
-
-    p = portals + portalnum;
-
-    RecursiveLeafBitFlow(p->leaf, p->portalflood, p->portalvis);
-
-    // build leaf vis information
-    p->nummightsee = CountBits(p->portalvis, numportals * 2);
-    c_vis += p->nummightsee;
-}

@@ -125,10 +125,7 @@ extern byte *uncompressed;
 extern int32_t leafbytes, leaflongs;
 extern int32_t portalbytes, portallongs;
 
-void LeafFlow(int32_t leafnum);
-
 void BasePortalVis(int32_t portalnum);
-void BetterPortalVis(int32_t portalnum);
 void PortalFlow(int32_t portalnum);
 
 extern portal_t *sorted_portals[MAX_MAP_PORTALS * 2];
