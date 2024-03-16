@@ -854,10 +854,7 @@ void RAD_ProcessArgument(const char *arg) {
         maxdata = MAX_MAP_LIGHTING_QBSP;
     }
     ParseEntities();
-    if (h2tex)
-        CalcTextureReflectivity_Heretic2();
-    else
-        CalcTextureReflectivity();
+    CalcTextureReflectivity();
 
     if (!visdatasize) {
         printf("No vis information, direct lighting only.\n");

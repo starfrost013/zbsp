@@ -518,9 +518,9 @@ void ParseBrush(entity_t *mapent) {
 
         if (use_qbsp) {
             if (nummapbrushsides == MAX_MAP_BRUSHSIDES_QBSP)
-                Error("MAX_MAP_BRUSHSIDES_QBSP");
+                Error("MAX_MAP_BRUSHSIDES_QBSP exceeded");
         } else if (nummapbrushsides == MAX_MAP_BRUSHSIDES)
-            Error("MAX_MAP_BRUSHSIDES");
+            Error("MAX_MAP_BRUSHSIDES exceeded");
         side = &brushsides[nummapbrushsides];
 
         // read the three point plane definition

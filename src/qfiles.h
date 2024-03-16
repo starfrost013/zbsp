@@ -215,49 +215,6 @@ typedef struct palette_s
 	};
 } palette_t;
 
-typedef struct miptex_m8_s
-{
-	int32_t version;
-	char name[32];
-	unsigned width[H2_MIPLEVELS], height[H2_MIPLEVELS];
-	unsigned offsets[H2_MIPLEVELS];         // four mip maps stored
-	char animname[32];                  // next frame in animation chain
-	palette_t palette[PAL_SIZE];
-	int32_t flags;
-	int32_t contents;
-	int32_t value;
-} miptex_m8_t;
-
-
-#define MIP32_VERSION   4
-#define MIP32_NOMIP_FLAG2       0x00000001
-#define MIP32_DETAILER_FLAG2        0x00000002
-typedef struct miptex_m32_s
-{
-	int32_t version;
-	char name[128];
-	char altname[128];                  // texture substitution
-	char animname[128];                 // next frame in animation chain
-	char damagename[128];               // image that should be shown when damaged
-	unsigned width[H2_MIPLEVELS], height[H2_MIPLEVELS];
-	unsigned offsets[H2_MIPLEVELS];
-	int32_t flags;
-	int32_t contents;
-	int32_t value;
-	float scale_x, scale_y;
-	int32_t mip_scale;
-
-	// detail texturing info
-	char dt_name[128];              // detailed texture name
-	float dt_scale_x, dt_scale_y;
-	float dt_u, dt_v;
-	float dt_alpha;
-	int32_t dt_src_blend_mode, dt_dst_blend_mode;
-
-	int32_t flags2;
-	int32_t unused[19];                     // future expansion to maintain compatibility with h2
-} miptex_m32_t;
-
 
 /*
 ==============================================================================

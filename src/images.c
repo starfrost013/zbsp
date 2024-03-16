@@ -545,7 +545,7 @@ void Cmd_Mip(void) {
             Error("line %i: unknown parm %s", scriptline, token);
     }
 
-    sprintf(filename, "%stextures/%s/%s.wal", gamedir, mip_prefix, lumpname);
+    sprintf(filename, "%stextures/%s/%s.tga", gamedir, mip_prefix, lumpname);
     if (g_release)
         return; // textures are only released by $maps
 

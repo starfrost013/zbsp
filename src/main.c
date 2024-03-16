@@ -96,7 +96,6 @@ static char *help_string =
     "    -nopvs:  Don't do potential visibility set check.\n"
     "    -savetrace: Test traces and report errors.\n";
 
-extern qboolean h2tex;
 extern qboolean origfix;
 extern qboolean noweld;
 extern qboolean nocsg;
@@ -180,7 +179,7 @@ int32_t main(int32_t argc, char *argv[]) {
 
     ThreadSetDefault();
 
-    printf("\n\nThe Zombono BSP Compiler, version " TOOLS_VERSION "\n© 2024 starfrost. Based on q2tools.\n\n");
+    printf("The Zombono BSP Compiler, version " TOOLS_VERSION "\n© 2024 starfrost. Based on q2tools.\n\n");
 
     for (i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "-bsp")) {
@@ -348,9 +347,6 @@ int32_t main(int32_t argc, char *argv[]) {
         } else if (!strcmp(argv[i], "-extra")) {
             extrasamples = true;
             printf("extrasamples = true\n");
-        } else if (!strcmp(argv[i], "-h2tex")) {
-            h2tex = true;
-            printf("use Heretic II texture format = true\n");
         } else if (!strcmp(argv[i], "-noedgefix")) {
             // qb: light warp surfaces
             noedgefix = true;

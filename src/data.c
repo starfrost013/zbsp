@@ -305,7 +305,7 @@ void ReleaseTexture(char *name) {
     strcpy(rtex[i], name);
     numrtex++;
 
-    sprintf(path, "textures/%s.wal", name);
+    sprintf(path, "textures/%s.tga", name);
     ReleaseFile(path);
 }
 
