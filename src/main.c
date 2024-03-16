@@ -19,7 +19,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 ===========================================================================
 */
 
-#define TOOLS_VERSION "1.0.0"
+#define TOOLS_VERSION "0.1.0"
 
 #include "cmdlib.h"
 #include "mathlib.h"
@@ -110,7 +110,6 @@ extern qboolean fulldetail;
 extern qboolean onlyents;
 extern float microvolume;
 extern qboolean leaktest;
-extern qboolean use_qbsp;
 extern int32_t max_entities;
 extern int32_t max_bounds;
 extern int32_t block_size;
@@ -170,6 +169,11 @@ int32_t main(int32_t argc, char *argv[]) {
     char tbasedir[1024] = "";
     char tmoddir[1024]  = "";
     int32_t i;
+
+    // TEMPORARY
+    max_entities = MAX_MAP_ENTITIES_QBSP;
+    max_bounds = MAX_MAP_SIZE;
+    block_size = MAX_BLOCK_SIZE; // qb: otherwise limits map range
 
     qboolean do_bsp  = false;
     qboolean do_vis  = false;
@@ -236,28 +240,14 @@ int32_t main(int32_t argc, char *argv[]) {
         } else if (!strcmp(argv[i], "-micro")) {
             microvolume = atof(argv[i + 1]);
             i++;
-        } else if (!strcmp(argv[i], "-leaktest")) {
+        }
+        else if (!strcmp(argv[i], "-leaktest")) {
             printf("leaktest = true\n");
             leaktest = true;
-        } else if (!strcmp(argv[i], "-qbsp")) {
-            // qb: qbsp
-            printf("use_qbsp = true\n");
-            use_qbsp     = true;
-            max_entities = MAX_MAP_ENTITIES_QBSP;
-            max_bounds   = MAX_MAP_SIZE;
-            block_size   = MAX_BLOCK_SIZE; // qb: otherwise limits map range
-        } else if (!strcmp(argv[i], "-noskipfix")) {
+        }
+        else if (!strcmp(argv[i], "-noskipfix")) {
             printf("noskipfix = true\n");
             noskipfix = true;
-        } else if (!strcmp(argv[i], "-largebounds") || !strcmp(argv[i], "-lb")) {
-            // qb: from kmqbsp3- Knightmare added
-            if (use_qbsp) {
-                printf("[-largebounds is not required with -qbsp]\n");
-            } else {
-                max_bounds = MAX_MAP_SIZE;
-                block_size = MAX_BLOCK_SIZE; // qb: otherwise limits map range
-                printf("largebounds: using max bound size of %i\n", MAX_MAP_SIZE);
-            }
         }
         // qb:  set gamedir, moddir, and basedir
         else if (!strcmp(argv[i], "-gamedir")) {

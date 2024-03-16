@@ -23,8 +23,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "threads.h"
 #include "stdlib.h"
 
-extern qboolean use_qbsp;
-
 int32_t numportals;
 int32_t portalclusters;
 
@@ -500,9 +498,6 @@ void VIS_ProcessArgument(const char * arg) {
     visdatasize = vismap_p - dvisdata;
 
     printf("visdatasize: %i compressed from %i\n", visdatasize, originalvismapsize * 2);
-
-    if (!use_qbsp && vismap_p > (vismap + DEFAULT_MAP_VISIBILITY))
-        printf("\nWARNING: visdatasize exceeds default limit of %i\n\n", DEFAULT_MAP_VISIBILITY);
 
     sprintf(name, "%s%s", outbase, source);
     WriteBSPFile(name);

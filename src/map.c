@@ -128,12 +128,10 @@ int32_t CreateNewFloatPlane(vec3_t normal, vec_t dist, int32_t bnum) {
 
     if (VectorLength(normal) < 0.5)
         Error("FloatPlane: bad normal. Brush %i", bnum); // qb: add brushnum
+
     // create a new plane
-    if (use_qbsp) {
-        if (nummapplanes + 2 > MAX_MAP_PLANES_QBSP)
-            Error("MAX_MAP_PLANES_QBSP");
-    } else if (nummapplanes + 2 > MAX_MAP_PLANES)
-        Error("MAX_MAP_PLANES");
+    if (nummapplanes + 2 > MAX_MAP_PLANES_QBSP)
+        Error("MAX_MAP_PLANES_QBSP");;
 
     p = &mapplanes[nummapplanes];
     VectorCopy(normal, p->normal);
@@ -319,11 +317,9 @@ void AddBrushBevels(mapbrush_t *b) {
 
             if (i == b->numsides) {
                 // add a new side
-                if (use_qbsp) {
-                    if (nummapbrushsides == MAX_MAP_BRUSHSIDES_QBSP)
-                        Error("MAX_MAP_BRUSHSIDES_QBSP");
-                } else if (nummapbrushsides == MAX_MAP_BRUSHSIDES)
-                    Error("MAX_MAP_BRUSHSIDES");
+                if (nummapbrushsides == MAX_MAP_BRUSHSIDES_QBSP)
+                    Error("MAX_MAP_BRUSHSIDES_QBSP");
+
                 nummapbrushsides++;
                 b->numsides++;
                 VectorClear(normal);
@@ -411,11 +407,8 @@ void AddBrushBevels(mapbrush_t *b) {
                         continue; // wasn't part of the outer hull
 
                     // add this plane
-                    if (use_qbsp) {
-                        if (nummapbrushsides == MAX_MAP_BRUSHSIDES_QBSP)
-                            Error("MAX_MAP_BRUSHSIDES_QBSP");
-                    } else if (nummapbrushsides == MAX_MAP_BRUSHSIDES)
-                        Error("MAX_MAP_BRUSHSIDES");
+                    if (nummapbrushsides == MAX_MAP_BRUSHSIDES_QBSP)
+                        Error("MAX_MAP_BRUSHSIDES_QBSP");
 
                     nummapbrushsides++;
                     s2           = &b->original_sides[b->numsides];
@@ -500,11 +493,8 @@ void ParseBrush(entity_t *mapent) {
     vec3_t planepts[3];
     vec_t UVaxis[6]; // DarkEssence: UV axis in 220 #mapversion
 
-    if (use_qbsp) {
-        if (nummapbrushes == MAX_MAP_BRUSHES_QBSP)
-            Error("nummapbrushes == MAX_MAP_BRUSHES_QBSP  (%i)", MAX_MAP_BRUSHES_QBSP);
-    } else if (nummapbrushes == MAX_MAP_BRUSHES)
-        Error("nummapbrushes == MAX_MAP_BRUSHES  (%i)", MAX_MAP_BRUSHES);
+    if (nummapbrushes == MAX_MAP_BRUSHES_QBSP)
+        Error("nummapbrushes == MAX_MAP_BRUSHES_QBSP  (%i)", MAX_MAP_BRUSHES_QBSP);
 
     b                 = &mapbrushes[nummapbrushes];
     b->original_sides = &brushsides[nummapbrushsides];
@@ -517,11 +507,8 @@ void ParseBrush(entity_t *mapent) {
         if (!strcmp(token, "}"))
             break;
 
-        if (use_qbsp) {
-            if (nummapbrushsides == MAX_MAP_BRUSHSIDES_QBSP)
-                Error("MAX_MAP_BRUSHSIDES_QBSP exceeded");
-        } else if (nummapbrushsides == MAX_MAP_BRUSHSIDES)
-            Error("MAX_MAP_BRUSHSIDES exceeded");
+        if (nummapbrushsides == MAX_MAP_BRUSHSIDES_QBSP)
+            Error("MAX_MAP_BRUSHSIDES_QBSP exceeded");
         side = &brushsides[nummapbrushsides];
 
         // read the three point plane definition
@@ -811,17 +798,10 @@ qboolean ParseMapEntity(void) {
     if (strcmp(token, "{"))
         Error("ParseEntity: { not found");
 
-    if (use_qbsp) {
-        if (num_entities == WARN_MAP_ENTITIES_QBSP)
-            printf("WARNING: num_entities may exceed protocol limit (%i)", WARN_MAP_ENTITIES_QBSP);
-        if (num_entities == max_entities)
-            Error("num_entities exceeds MAX_MAP_ENTITIES_QBSP  (%i)", MAX_MAP_ENTITIES_QBSP);
-    } else {
-        if (num_entities == DEFAULT_MAP_ENTITIES)
-            printf("WARNING: num_entities exceeds vanilla limit (%i)", DEFAULT_MAP_ENTITIES);
-        if (num_entities == max_entities) // qb: from kmqbsp3 Knightmare changed- was MAX_MAP_ENTITIES
-            Error("num_entities exceeds MAX_MAP_ENTITIES  (%i)", MAX_MAP_ENTITIES);
-    }
+    if (num_entities == WARN_MAP_ENTITIES_QBSP)
+        printf("WARNING: num_entities may exceed protocol limit (%i)", WARN_MAP_ENTITIES_QBSP);
+    if (num_entities == max_entities)
+        Error("num_entities exceeds MAX_MAP_ENTITIES_QBSP  (%i)", MAX_MAP_ENTITIES_QBSP);
 
     entity_t *mapent = &entities[num_entities];
     num_entities++;

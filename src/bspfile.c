@@ -24,10 +24,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "bspfile.h"
 #include "scriplib.h"
 
-qboolean use_qbsp  = false; // qb: huge map support
 qboolean noskipfix = false; // qb: warn about SURF_SKIP contents rather than silently changing to zero
-
-void GetLeafNums(void);
 
 //=============================================================================
 
@@ -253,100 +250,51 @@ void SwapBSPFile(qboolean todisk) {
     //
     // faces nodes leafs brushsides leafbrushes leaffaces
     //
-    if (use_qbsp) {
-        for (i = 0; i < numfaces; i++) {
-            dfacesX[i].texinfo   = LittleLong(dfacesX[i].texinfo);
-            dfacesX[i].planenum  = LittleLong(dfacesX[i].planenum);
-            dfacesX[i].side      = LittleLong(dfacesX[i].side);
-            dfacesX[i].lightofs  = LittleLong(dfacesX[i].lightofs);
-            dfacesX[i].firstedge = LittleLong(dfacesX[i].firstedge);
-            dfacesX[i].numedges  = LittleLong(dfacesX[i].numedges);
-        }
-
-        for (i = 0; i < numnodes; i++) {
-            dnodesX[i].planenum = LittleLong(dnodesX[i].planenum);
-            for (j = 0; j < 3; j++) {
-                dnodesX[i].mins[j] = LittleFloat(dnodesX[i].mins[j]);
-                dnodesX[i].maxs[j] = LittleFloat(dnodesX[i].maxs[j]);
-            }
-            dnodesX[i].children[0] = LittleLong(dnodesX[i].children[0]);
-            dnodesX[i].children[1] = LittleLong(dnodesX[i].children[1]);
-            dnodesX[i].firstface   = LittleLong(dnodesX[i].firstface);
-            dnodesX[i].numfaces    = LittleLong(dnodesX[i].numfaces);
-        }
-
-        for (i = 0; i < numleafs; i++) {
-            dleafsX[i].contents = LittleLong(dleafsX[i].contents);
-            dleafsX[i].cluster  = LittleLong(dleafsX[i].cluster);
-            dleafsX[i].area     = LittleLong(dleafsX[i].area);
-            for (j = 0; j < 3; j++) {
-                dleafsX[i].mins[j] = LittleFloat(dleafsX[i].mins[j]);
-                dleafsX[i].maxs[j] = LittleFloat(dleafsX[i].maxs[j]);
-            }
-            dleafsX[i].firstleafface  = LittleLong(dleafsX[i].firstleafface);
-            dleafsX[i].numleaffaces   = LittleLong(dleafsX[i].numleaffaces);
-            dleafsX[i].firstleafbrush = LittleLong(dleafsX[i].firstleafbrush);
-            dleafsX[i].numleafbrushes = LittleLong(dleafsX[i].numleafbrushes);
-        }
-
-        for (i = 0; i < numbrushsides; i++) {
-            dbrushsidesX[i].planenum = LittleLong(dbrushsidesX[i].planenum);
-            dbrushsidesX[i].texinfo  = LittleLong(dbrushsidesX[i].texinfo);
-        }
-
-        for (i = 0; i < numleafbrushes; i++)
-            dleafbrushesX[i] = LittleLong(dleafbrushesX[i]);
-
-        for (i = 0; i < numleaffaces; i++)
-            dleaffacesX[i] = LittleLong(dleaffacesX[i]);
-
-    } else {
-        for (i = 0; i < numfaces; i++) {
-            dfaces[i].texinfo   = LittleShort(dfaces[i].texinfo);
-            dfaces[i].planenum  = LittleShort(dfaces[i].planenum);
-            dfaces[i].side      = LittleShort(dfaces[i].side);
-            dfaces[i].lightofs  = LittleLong(dfaces[i].lightofs);
-            dfaces[i].firstedge = LittleLong(dfaces[i].firstedge);
-            dfaces[i].numedges  = LittleShort(dfaces[i].numedges);
-        }
-
-        for (i = 0; i < numnodes; i++) {
-            dnodes[i].planenum = LittleLong(dnodes[i].planenum);
-            for (j = 0; j < 3; j++) {
-                dnodes[i].mins[j] = LittleShort(dnodes[i].mins[j]);
-                dnodes[i].maxs[j] = LittleShort(dnodes[i].maxs[j]);
-            }
-            dnodes[i].children[0] = LittleLong(dnodes[i].children[0]);
-            dnodes[i].children[1] = LittleLong(dnodes[i].children[1]);
-            dnodes[i].firstface   = LittleShort(dnodes[i].firstface);
-            dnodes[i].numfaces    = LittleShort(dnodes[i].numfaces);
-        }
-
-        for (i = 0; i < numleafs; i++) {
-            dleafs[i].contents = LittleLong(dleafs[i].contents);
-            dleafs[i].cluster  = LittleShort(dleafs[i].cluster);
-            dleafs[i].area     = LittleShort(dleafs[i].area);
-            for (j = 0; j < 3; j++) {
-                dleafs[i].mins[j] = LittleShort(dleafs[i].mins[j]);
-                dleafs[i].maxs[j] = LittleShort(dleafs[i].maxs[j]);
-            }
-            dleafs[i].firstleafface  = LittleShort(dleafs[i].firstleafface);
-            dleafs[i].numleaffaces   = LittleShort(dleafs[i].numleaffaces);
-            dleafs[i].firstleafbrush = LittleShort(dleafs[i].firstleafbrush);
-            dleafs[i].numleafbrushes = LittleShort(dleafs[i].numleafbrushes);
-        }
-
-        for (i = 0; i < numbrushsides; i++) {
-            dbrushsides[i].planenum = LittleShort(dbrushsides[i].planenum);
-            dbrushsides[i].texinfo  = LittleShort(dbrushsides[i].texinfo);
-        }
-
-        for (i = 0; i < numleafbrushes; i++)
-            dleafbrushes[i] = LittleShort(dleafbrushes[i]);
-
-        for (i = 0; i < numleaffaces; i++)
-            dleaffaces[i] = LittleShort(dleaffaces[i]);
+    for (i = 0; i < numfaces; i++) {
+        dfacesX[i].texinfo = LittleLong(dfacesX[i].texinfo);
+        dfacesX[i].planenum = LittleLong(dfacesX[i].planenum);
+        dfacesX[i].side = LittleLong(dfacesX[i].side);
+        dfacesX[i].lightofs = LittleLong(dfacesX[i].lightofs);
+        dfacesX[i].firstedge = LittleLong(dfacesX[i].firstedge);
+        dfacesX[i].numedges = LittleLong(dfacesX[i].numedges);
     }
+
+    for (i = 0; i < numnodes; i++) {
+        dnodesX[i].planenum = LittleLong(dnodesX[i].planenum);
+        for (j = 0; j < 3; j++) {
+            dnodesX[i].mins[j] = LittleFloat(dnodesX[i].mins[j]);
+            dnodesX[i].maxs[j] = LittleFloat(dnodesX[i].maxs[j]);
+        }
+        dnodesX[i].children[0] = LittleLong(dnodesX[i].children[0]);
+        dnodesX[i].children[1] = LittleLong(dnodesX[i].children[1]);
+        dnodesX[i].firstface = LittleLong(dnodesX[i].firstface);
+        dnodesX[i].numfaces = LittleLong(dnodesX[i].numfaces);
+    }
+
+    for (i = 0; i < numleafs; i++) {
+        dleafsX[i].contents = LittleLong(dleafsX[i].contents);
+        dleafsX[i].cluster = LittleLong(dleafsX[i].cluster);
+        dleafsX[i].area = LittleLong(dleafsX[i].area);
+        for (j = 0; j < 3; j++) {
+            dleafsX[i].mins[j] = LittleFloat(dleafsX[i].mins[j]);
+            dleafsX[i].maxs[j] = LittleFloat(dleafsX[i].maxs[j]);
+        }
+        dleafsX[i].firstleafface = LittleLong(dleafsX[i].firstleafface);
+        dleafsX[i].numleaffaces = LittleLong(dleafsX[i].numleaffaces);
+        dleafsX[i].firstleafbrush = LittleLong(dleafsX[i].firstleafbrush);
+        dleafsX[i].numleafbrushes = LittleLong(dleafsX[i].numleafbrushes);
+    }
+
+    for (i = 0; i < numbrushsides; i++) {
+        dbrushsidesX[i].planenum = LittleLong(dbrushsidesX[i].planenum);
+        dbrushsidesX[i].texinfo = LittleLong(dbrushsidesX[i].texinfo);
+    }
+
+    for (i = 0; i < numleafbrushes; i++)
+        dleafbrushesX[i] = LittleLong(dleafbrushesX[i]);
+
+    for (i = 0; i < numleaffaces; i++)
+        dleaffacesX[i] = LittleLong(dleaffacesX[i]);
 
     //
     // surfedges
@@ -357,16 +305,10 @@ void SwapBSPFile(qboolean todisk) {
     //
     // edges
     //
-    if (use_qbsp)
-        for (i = 0; i < numedges; i++) {
-            dedgesX[i].v[0] = LittleLong(dedgesX[i].v[0]);
-            dedgesX[i].v[1] = LittleLong(dedgesX[i].v[1]);
-        }
-    else
-        for (i = 0; i < numedges; i++) {
-            dedges[i].v[0] = LittleShort(dedges[i].v[0]);
-            dedges[i].v[1] = LittleShort(dedges[i].v[1]);
-        }
+    for (i = 0; i < numedges; i++) {
+        dedgesX[i].v[0] = LittleLong(dedgesX[i].v[0]);
+        dedgesX[i].v[1] = LittleLong(dedgesX[i].v[1]);
+    }
 
     //
     // brushes
@@ -442,56 +384,37 @@ void LoadBSPFile(char *filename) {
     for (i = 0; i < sizeof(dheader_t) / 4; i++)
         ((int32_t *)header)[i] = LittleLong(((int32_t *)header)[i]);
 
-    // qb: qbsp
-    use_qbsp = false;
 
-    switch (header->ident) {
-    case IDBSPHEADER:
-        break;
-    case QBSPHEADER:
-        use_qbsp = true;
-        printf("using QBSP extended limits \n");
+    switch (header->ident)
+    {
+    case ZBSPHEADER:
         break;
     default:
-        Error("%s is not a recognized BSP file (IBSP or QBSP).",
+        Error("%s is not a ZBSP file.",
               filename);
     }
-    if (header->version != BSPVERSION)
-        Error("%s is version %i, not %i", filename, header->version, BSPVERSION);
+    if (header->version != ZBSPVERSION)
+        Error("%s is version %i, not %i", filename, header->version, ZBSPVERSION);
 
     nummodels   = CopyLump(LUMP_MODELS, dmodels, sizeof(dmodel_t));
     numvertexes = CopyLump(LUMP_VERTEXES, dvertexes, sizeof(dvertex_t));
     numplanes   = CopyLump(LUMP_PLANES, dplanes, sizeof(dplane_t));
 
-    if (use_qbsp) {
-        numleafs       = CopyLump(LUMP_LEAFS, dleafsX, sizeof(dleaf_tx));
-        numnodes       = CopyLump(LUMP_NODES, dnodesX, sizeof(dnode_tx));
-        numtexinfo     = CopyLump(LUMP_TEXINFO, texinfo, sizeof(texinfo_t));
-        numfaces       = CopyLump(LUMP_FACES, dfacesX, sizeof(dface_tx));
-        numleaffaces   = CopyLump(LUMP_LEAFFACES, dleaffacesX, sizeof(dleaffacesX[0]));
-        numleafbrushes = CopyLump(LUMP_LEAFBRUSHES, dleafbrushesX, sizeof(dleafbrushesX[0]));
-    } else {
-        numleafs       = CopyLump(LUMP_LEAFS, dleafs, sizeof(dleaf_t));
-        numnodes       = CopyLump(LUMP_NODES, dnodes, sizeof(dnode_t));
-        numtexinfo     = CopyLump(LUMP_TEXINFO, texinfo, sizeof(texinfo_t));
-        numfaces       = CopyLump(LUMP_FACES, dfaces, sizeof(dface_t));
-        numleaffaces   = CopyLump(LUMP_LEAFFACES, dleaffaces, sizeof(dleaffaces[0]));
-        numleafbrushes = CopyLump(LUMP_LEAFBRUSHES, dleafbrushes, sizeof(dleafbrushes[0]));
-    }
+    numleafs = CopyLump(LUMP_LEAFS, dleafsX, sizeof(dleaf_tx));
+    numnodes = CopyLump(LUMP_NODES, dnodesX, sizeof(dnode_tx));
+    numtexinfo = CopyLump(LUMP_TEXINFO, texinfo, sizeof(texinfo_t));
+    numfaces = CopyLump(LUMP_FACES, dfacesX, sizeof(dface_tx));
+    numleaffaces = CopyLump(LUMP_LEAFFACES, dleaffacesX, sizeof(dleaffacesX[0]));
+    numleafbrushes = CopyLump(LUMP_LEAFBRUSHES, dleafbrushesX, sizeof(dleafbrushesX[0]));
 
     numsurfedges = CopyLump(LUMP_SURFEDGES, dsurfedges, sizeof(dsurfedges[0]));
 
-    if (use_qbsp)
-        numedges = CopyLump(LUMP_EDGES, dedgesX, sizeof(dedge_tx));
-    else
-        numedges = CopyLump(LUMP_EDGES, dedges, sizeof(dedge_t));
+    numedges = CopyLump(LUMP_EDGES, dedgesX, sizeof(dedge_tx));
 
     numbrushes = CopyLump(LUMP_BRUSHES, dbrushes, sizeof(dbrush_t));
 
-    if (use_qbsp)
-        numbrushsides = CopyLump(LUMP_BRUSHSIDES, dbrushsidesX, sizeof(dbrushside_tx));
-    else
-        numbrushsides = CopyLump(LUMP_BRUSHSIDES, dbrushsides, sizeof(dbrushside_t));
+    numbrushsides = CopyLump(LUMP_BRUSHSIDES, dbrushsidesX, sizeof(dbrushside_tx));
+
 
     numareas       = CopyLump(LUMP_AREAS, dareas, sizeof(darea_t));
     numareaportals = CopyLump(LUMP_AREAPORTALS, dareaportals, sizeof(dareaportal_t));
@@ -532,10 +455,10 @@ void LoadBSPFileTexinfo(char *filename) {
     for (i = 0; i < sizeof(dheader_t) / 4; i++)
         ((int32_t *)header)[i] = LittleLong(((int32_t *)header)[i]);
 
-    if (header->ident != IDBSPHEADER && header->ident != QBSPHEADER)
-        Error("%s is not an IBSP or QBSP file", filename);
-    if (header->version != BSPVERSION)
-        Error("%s is version %i, not %i", filename, header->version, BSPVERSION);
+    if (header->ident != ZBSPHEADER)
+        Error("%s is not a ZBSP file", filename);
+    if (header->version != ZBSPVERSION)
+        Error("%s is version %i, not %i", filename, header->version, ZBSPVERSION);
 
     length = header->lumps[LUMP_TEXINFO].filelen;
     ofs    = header->lumps[LUMP_TEXINFO].fileofs;
@@ -581,55 +504,34 @@ void WriteBSPFile(char *filename) {
 
     SwapBSPFile(true);
 
-    if (use_qbsp)
-        header->ident = LittleLong(QBSPHEADER);
-    else
-        header->ident = LittleLong(IDBSPHEADER);
+    header->ident = LittleLong(ZBSPHEADER);
 
-    header->version = LittleLong(BSPVERSION);
+    header->version = LittleLong(ZBSPVERSION);
 
     wadfile         = SafeOpenWrite(filename);
     SafeWrite(wadfile, header, sizeof(dheader_t)); // overwritten later
 
     AddLump(LUMP_PLANES, dplanes, numplanes * sizeof(dplane_t));
 
-    if (use_qbsp)
-        AddLump(LUMP_LEAFS, dleafsX, numleafs * sizeof(dleaf_tx));
-    else
-        AddLump(LUMP_LEAFS, dleafs, numleafs * sizeof(dleaf_t));
+    AddLump(LUMP_LEAFS, dleafsX, numleafs * sizeof(dleaf_tx));
 
     AddLump(LUMP_VERTEXES, dvertexes, numvertexes * sizeof(dvertex_t));
 
-    if (use_qbsp)
-        AddLump(LUMP_NODES, dnodesX, numnodes * sizeof(dnode_tx));
-    else
-        AddLump(LUMP_NODES, dnodes, numnodes * sizeof(dnode_t));
+    AddLump(LUMP_NODES, dnodesX, numnodes * sizeof(dnode_tx));
 
     AddLump(LUMP_TEXINFO, texinfo, numtexinfo * sizeof(texinfo_t));
 
-    if (use_qbsp)
-        AddLump(LUMP_FACES, dfacesX, numfaces * sizeof(dface_tx));
-    else
-        AddLump(LUMP_FACES, dfaces, numfaces * sizeof(dface_t));
+    AddLump(LUMP_FACES, dfacesX, numfaces * sizeof(dface_tx));
 
     AddLump(LUMP_BRUSHES, dbrushes, numbrushes * sizeof(dbrush_t));
 
-    if (use_qbsp) {
-        AddLump(LUMP_BRUSHSIDES, dbrushsidesX, numbrushsides * sizeof(dbrushside_tx));
-        AddLump(LUMP_LEAFFACES, dleaffacesX, numleaffaces * sizeof(dleaffacesX[0]));
-        AddLump(LUMP_LEAFBRUSHES, dleafbrushesX, numleafbrushes * sizeof(dleafbrushesX[0]));
-    } else {
-        AddLump(LUMP_BRUSHSIDES, dbrushsides, numbrushsides * sizeof(dbrushside_t));
-        AddLump(LUMP_LEAFFACES, dleaffaces, numleaffaces * sizeof(dleaffaces[0]));
-        AddLump(LUMP_LEAFBRUSHES, dleafbrushes, numleafbrushes * sizeof(dleafbrushes[0]));
-    }
+    AddLump(LUMP_BRUSHSIDES, dbrushsidesX, numbrushsides * sizeof(dbrushside_tx));
+    AddLump(LUMP_LEAFFACES, dleaffacesX, numleaffaces * sizeof(dleaffacesX[0]));
+    AddLump(LUMP_LEAFBRUSHES, dleafbrushesX, numleafbrushes * sizeof(dleafbrushesX[0]));
 
     AddLump(LUMP_SURFEDGES, dsurfedges, numsurfedges * sizeof(dsurfedges[0]));
 
-    if (use_qbsp)
-        AddLump(LUMP_EDGES, dedgesX, numedges * sizeof(dedge_tx));
-    else
-        AddLump(LUMP_EDGES, dedges, numedges * sizeof(dedge_t));
+    AddLump(LUMP_EDGES, dedgesX, numedges * sizeof(dedge_tx));
 
     AddLump(LUMP_MODELS, dmodels, nummodels * sizeof(dmodel_t));
     AddLump(LUMP_AREAS, dareas, numareas * sizeof(darea_t));
@@ -661,10 +563,7 @@ void PrintBSPFileSizes(void) {
     printf("models:      %7i        size: %7i\n", nummodels, (int32_t)(nummodels * sizeof(dmodel_t)));
     printf("brushes:     %7i        size: %7i\n", numbrushes, (int32_t)(numbrushes * sizeof(dbrush_t)));
 
-    if (use_qbsp)
-        printf("brushsides:  %7i        size: %7i\n", numbrushsides, (int32_t)(numbrushsides * sizeof(dbrushside_tx)));
-    else
-        printf("brushsides:  %7i        size: %7i\n", numbrushsides, (int32_t)(numbrushsides * sizeof(dbrushside_t)));
+    printf("brushsides:  %7i        size: %7i\n", numbrushsides, (int32_t)(numbrushsides * sizeof(dbrushside_tx)));
 
     printf("planes:      %7i        size: %7i\n", numplanes, (int32_t)(numplanes * sizeof(dplane_t)));
     printf("texinfo:     %7i        size: %7i\n", numtexinfo, (int32_t)(numtexinfo * sizeof(texinfo_t)));
@@ -672,21 +571,12 @@ void PrintBSPFileSizes(void) {
 
     printf("vertices:    %7i        size: %7i\n", numvertexes, (int32_t)(numvertexes * sizeof(dvertex_t)));
 
-    if (use_qbsp) {
-        printf("nodes:       %7i        size: %7i\n", numnodes, (int32_t)(numnodes * sizeof(dnode_tx)));
-        printf("faces:       %7i        size: %7i\n", numfaces, (int32_t)(numfaces * sizeof(dface_tx)));
-        printf("leafs:       %7i        size: %7i\n", numleafs, (int32_t)(numleafs * sizeof(dleaf_tx)));
-        printf("leaffaces:   %7i        size: %7i\n", numleaffaces, (int32_t)(numleaffaces * sizeof(dleaffacesX[0])));
-        printf("leafbrushes: %7i        size: %7i\n", numleafbrushes, (int32_t)(numleafbrushes * sizeof(dleafbrushesX[0])));
-        printf("edges:       %7i        size: %7i\n", numedges, (int32_t)(numedges * sizeof(dedge_tx)));
-    } else {
-        printf("nodes:       %7i        size: %7i\n", numnodes, (int32_t)(numnodes * sizeof(dnode_t)));
-        printf("faces:       %7i        size: %7i\n", numfaces, (int32_t)(numfaces * sizeof(dface_t)));
-        printf("leafs:       %7i        size: %7i\n", numleafs, (int32_t)(numleafs * sizeof(dleaf_t)));
-        printf("leaffaces:   %7i        size: %7i\n", numleaffaces, (int32_t)(numleaffaces * sizeof(dleaffaces[0])));
-        printf("leafbrushes: %7i        size: %7i\n", numleafbrushes, (int32_t)(numleafbrushes * sizeof(dleafbrushes[0])));
-        printf("edges:       %7i        size: %7i\n", numedges, (int32_t)(numedges * sizeof(dedge_t)));
-    }
+    printf("nodes:       %7i        size: %7i\n", numnodes, (int32_t)(numnodes * sizeof(dnode_tx)));
+    printf("faces:       %7i        size: %7i\n", numfaces, (int32_t)(numfaces * sizeof(dface_tx)));
+    printf("leafs:       %7i        size: %7i\n", numleafs, (int32_t)(numleafs * sizeof(dleaf_tx)));
+    printf("leaffaces:   %7i        size: %7i\n", numleaffaces, (int32_t)(numleaffaces * sizeof(dleaffacesX[0])));
+    printf("leafbrushes: %7i        size: %7i\n", numleafbrushes, (int32_t)(numleafbrushes * sizeof(dleafbrushesX[0])));
+    printf("edges:       %7i        size: %7i\n", numedges, (int32_t)(numedges * sizeof(dedge_tx)));
 
     printf("surfedges:   %7i        size: %7i\n", numsurfedges, (int32_t)(numsurfedges * sizeof(dsurfedges[0])));
     printf("                  lightdata size: %7i\n", lightdatasize);
@@ -749,11 +639,8 @@ qboolean ParseEntity(void) {
     if (strcmp(token, "{"))
         Error("ParseEntity: { not found");
 
-    if (use_qbsp) {
-        if (num_entities == MAX_MAP_ENTITIES_QBSP)
-            Error("num_entities == MAX_MAP_ENTITIES_QBSP  (%i)", MAX_MAP_ENTITIES_QBSP);
-    } else if (num_entities == MAX_MAP_ENTITIES)
-        Error("num_entities == MAX_MAP_ENTITIES  (%i)", MAX_MAP_ENTITIES);
+    if (num_entities == MAX_MAP_ENTITIES_QBSP)
+        Error("num_entities == MAX_MAP_ENTITIES_QBSP  (%i)", MAX_MAP_ENTITIES_QBSP);
 
     mapent = &entities[num_entities];
     num_entities++;
@@ -825,11 +712,8 @@ void UnparseEntities(void) {
         strcat(end, "}\n");
         end += 2;
 
-        if (use_qbsp) {
-            if (end > buf + MAX_MAP_ENTSTRING_QBSP)
-                Error("QBSP Entity text too long");
-        } else if (end > buf + MAX_MAP_ENTSTRING)
-            Error("Entity text too long");
+        if (end > buf + MAX_MAP_ENTSTRING_QBSP)
+            Error("QBSP Entity text too long");
     }
     entdatasize = end - buf + 1;
 }

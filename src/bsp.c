@@ -334,8 +334,6 @@ void BSP_ProcessArgument(const char * arg) {
 
         sprintf(out, "%s.bsp", source);
         LoadBSPFile(out);
-        if (use_qbsp)
-            printf("use_qbsp = true\n");
 
         num_entities = 0;
 

@@ -52,31 +52,6 @@ typedef struct
 /*
 ========================================================================
 
-PCX files are used for as many images as possible
-
-========================================================================
-*/
-
-typedef struct
-{
-    char manufacturer;
-    char version;
-    char encoding;
-    char bits_per_pixel;
-    uint16_t xmin, ymin, xmax, ymax;
-    uint16_t hres, vres;
-    uint8_t palette[48];
-    char reserved;
-    char color_planes;
-    uint16_t bytes_per_line;
-    uint16_t palette_type;
-    char filler[58];
-    uint8_t data; // unbounded
-} pcx_t;
-
-/*
-========================================================================
-
 .MD2 triangle model file format
 
 ========================================================================
@@ -185,39 +160,15 @@ typedef struct {
 /*
 ==============================================================================
 
-  .WAL texture file format
-  .M8  //qb: Heretic II support from q2map
-
-==============================================================================
-*/
-
-#define MIPLEVELS 4
-typedef struct miptex_s {
-    char name[32];
-    unsigned width, height;
-    unsigned offsets[MIPLEVELS]; // four mip maps stored
-    char animname[32];           // next frame in animation chain
-    int32_t flags;
-    int32_t contents;
-    int32_t value;
-} miptex_t;
-
-
-/*
-==============================================================================
-
   .BSP file format
 
 ==============================================================================
 */
 
-#define IDBSPHEADER              (('P' << 24) + ('S' << 16) + ('B' << 8) + 'I')
-// little-endian "IBSP"
+// little-endian 'ZBSP'
+#define ZBSPHEADER               ('Z' | ('B' << 8) | ('S' << 16) | ('P' << 24))
 
-// qb: qbsp
-#define QBSPHEADER               ('Q' | ('B' << 8) | ('S' << 16) | ('P' << 24))
-
-#define BSPVERSION               38
+#define ZBSPVERSION              1
 
 // upper design bounds
 // leaffaces, leafbrushes, planes, and verts are still bounded by
@@ -433,11 +384,13 @@ typedef struct
     uint32_t numfaces; // counting both sides
 } dnode_tx;            // qb: qbsp
 
+#define TEXTURE_LENGTH      80
+
 typedef struct texinfo_s {
     float vecs[2][4];    // [s/t][xyz offset]
     int32_t flags;       // miptex flags + overrides
     int32_t value;       // light emission, etc
-    char texture[32];    // texture name (textures/*.wal)
+    char texture[TEXTURE_LENGTH];    // texture name (textures/*.tga)
     int32_t nexttexinfo; // for animations, -1 = end of chain
 } texinfo_t;
 

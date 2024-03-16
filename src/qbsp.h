@@ -172,7 +172,6 @@ extern qboolean noshare;
 extern qboolean notjunc;
 extern qboolean badnormal_check;
 extern float badnormal;
-extern qboolean use_qbsp;
 extern qboolean noskipfix;
 
 extern vec_t microvolume;

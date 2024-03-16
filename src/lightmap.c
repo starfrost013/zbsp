@@ -57,20 +57,12 @@ typedef struct face_extents_s {
 static face_extents_t face_extents[MAX_MAP_FACES_QBSP];
 
 const dplane_t *getPlaneFromFaceNumber(const uint32_t faceNumber) {
-    if (use_qbsp) {
-        dface_tx *face = &dfacesX[faceNumber];
-        if (face->side) {
-            return &backplanes[face->planenum];
-        } else {
-            return &dplanes[face->planenum];
-        }
-    } else {
-        dface_t *face = &dfaces[faceNumber];
-        if (face->side) {
-            return &backplanes[face->planenum];
-        } else {
-            return &dplanes[face->planenum];
-        }
+    dface_tx* face = &dfacesX[faceNumber];
+    if (face->side) {
+        return &backplanes[face->planenum];
+    }
+    else {
+        return &dplanes[face->planenum];
     }
 }
 
@@ -95,136 +87,79 @@ void BuildFaceExtents(void) {
     const dvertex_t *v;
     int32_t i, j, k;
 
-    if (use_qbsp)
-        for (k = 0; k < numfaces; k++) {
+    for (k = 0; k < numfaces; k++)
+    {
+        const dface_tx* s = &dfacesX[k];
+        const texinfo_t* tex = &texinfo[s->texinfo];
+        const size_t face_index = (ptrdiff_t)(s - dfacesX);
 
-            const dface_tx *s       = &dfacesX[k];
-            const texinfo_t *tex    = &texinfo[s->texinfo];
-            const size_t face_index = (ptrdiff_t)(s - dfacesX);
+        vec_t* mins = face_extents[face_index].mins;
+        vec_t* maxs = face_extents[face_index].maxs;
 
-            vec_t *mins             = face_extents[face_index].mins;
-            vec_t *maxs             = face_extents[face_index].maxs;
+        vec_t* center = face_extents[face_index].center;
 
-            vec_t *center           = face_extents[face_index].center;
+        vec_t* st_mins = face_extents[face_index].st_mins;
+        vec_t* st_maxs = face_extents[face_index].st_maxs;
 
-            vec_t *st_mins          = face_extents[face_index].st_mins;
-            vec_t *st_maxs          = face_extents[face_index].st_maxs;
+        mins[0] = mins[1] = BOGUS_RANGE;
+        maxs[0] = maxs[1] = -BOGUS_RANGE;
 
-            mins[0] = mins[1] = BOGUS_RANGE;
-            maxs[0] = maxs[1] = -BOGUS_RANGE;
+        for (i = 0; i < s->numedges; i++) {
+            const int32_t e = dsurfedges[s->firstedge + i];
+            if (e >= 0) {
+                v = dvertexes + dedgesX[e].v[0];
+            }
+            else {
+                v = dvertexes + dedgesX[-e].v[1];
+            }
 
-            for (i = 0; i < s->numedges; i++) {
-                const int32_t e = dsurfedges[s->firstedge + i];
-                if (e >= 0) {
-                    v = dvertexes + dedgesX[e].v[0];
-                } else {
-                    v = dvertexes + dedgesX[-e].v[1];
+            for (j = 0; j < 3; j++) // calculate mins, maxs
+            {
+                if (v->point[j] > maxs[j]) {
+                    maxs[j] = v->point[j];
                 }
-
-                for (j = 0; j < 3; j++) // calculate mins, maxs
-                {
-                    if (v->point[j] > maxs[j]) {
-                        maxs[j] = v->point[j];
-                    }
-                    if (v->point[j] < mins[j]) {
-                        mins[j] = v->point[j];
-                    }
-                }
-
-                /* qb:  from ericw-tools light/ltface.cc:
-                 * The (long double) casts below are important: The original code
-                 * was written for x87 floating-point which uses 80-bit floats for
-                 * intermediate calculations. But if you compile it without the
-                 * casts for modern x86_64, the compiler will round each
-                 * intermediate result to a 32-bit float, which introduces extra
-                 * rounding error.
-                 *
-                 * This becomes a problem if the rounding error causes the light
-                 * utilities and the engine to disagree about the lightmap size
-                 * for some surfaces.
-                 *
-                 * Casting to (long double) keeps the intermediate values at at
-                 * least 64 bits of precision, probably 128.
-                 */
-
-                for (j = 0; j < 2; j++) // calculate st_mins, st_maxs
-                {
-                    // const vec_t val = DotProduct(v->point, tex->vecs[j]) + tex->vecs[j][3];
-                    const vec_t val = (long double)v->point[0] * tex->vecs[j][0] +
-                                      (long double)v->point[1] * tex->vecs[j][1] +
-                                      (long double)v->point[2] * tex->vecs[j][2] +
-                                      tex->vecs[j][3];
-                    if (val < st_mins[j]) {
-                        st_mins[j] = val;
-                    }
-                    if (val > st_maxs[j]) {
-                        st_maxs[j] = val;
-                    }
+                if (v->point[j] < mins[j]) {
+                    mins[j] = v->point[j];
                 }
             }
 
-            for (i = 0; i < 3; i++) // calculate center
+            /* qb:  from ericw-tools light/ltface.cc:
+             * The (long double) casts below are important: The original code
+             * was written for x87 floating-point which uses 80-bit floats for
+             * intermediate calculations. But if you compile it without the
+             * casts for modern x86_64, the compiler will round each
+             * intermediate result to a 32-bit float, which introduces extra
+             * rounding error.
+             *
+             * This becomes a problem if the rounding error causes the light
+             * utilities and the engine to disagree about the lightmap size
+             * for some surfaces.
+             *
+             * Casting to (long double) keeps the intermediate values at at
+             * least 64 bits of precision, probably 128.
+             */
+
+            for (j = 0; j < 2; j++) // calculate st_mins, st_maxs
             {
-                center[i] = (mins[i] + maxs[i]) / 2.0;
+                // const vec_t val = DotProduct(v->point, tex->vecs[j]) + tex->vecs[j][3];
+                const vec_t val = (long double)v->point[0] * tex->vecs[j][0] +
+                    (long double)v->point[1] * tex->vecs[j][1] +
+                    (long double)v->point[2] * tex->vecs[j][2] +
+                    tex->vecs[j][3];
+                if (val < st_mins[j]) {
+                    st_mins[j] = val;
+                }
+                if (val > st_maxs[j]) {
+                    st_maxs[j] = val;
+                }
             }
         }
-    else // ibsp
-        for (k = 0; k < numfaces; k++) {
-            const dface_t *s        = &dfaces[k];
-            const texinfo_t *tex    = &texinfo[s->texinfo];
-            const size_t face_index = (ptrdiff_t)(s - dfaces);
 
-            vec_t *mins             = face_extents[face_index].mins;
-            vec_t *maxs             = face_extents[face_index].maxs;
-
-            vec_t *center           = face_extents[face_index].center;
-
-            vec_t *st_mins          = face_extents[face_index].st_mins;
-            vec_t *st_maxs          = face_extents[face_index].st_maxs;
-
-            mins[0] = mins[1] = BOGUS_RANGE;
-            maxs[0] = maxs[1] = -BOGUS_RANGE;
-
-            for (i = 0; i < s->numedges; i++) {
-                const int32_t e = dsurfedges[s->firstedge + i];
-                if (e >= 0) {
-                    v = dvertexes + dedges[e].v[0];
-                } else {
-                    v = dvertexes + dedges[-e].v[1];
-                }
-
-                for (j = 0; j < 3; j++) // calculate mins, maxs
-                {
-                    if (v->point[j] > maxs[j]) {
-                        maxs[j] = v->point[j];
-                    }
-                    if (v->point[j] < mins[j]) {
-                        mins[j] = v->point[j];
-                    }
-                }
-
-                for (j = 0; j < 2; j++) // calculate st_mins, st_maxs
-                {
-                    // const vec_t val = DotProduct(v->point, tex->vecs[j]) + tex->vecs[j][3];
-                    const vec_t val = (long double)v->point[0] * tex->vecs[j][0] +
-                                      (long double)v->point[1] * tex->vecs[j][1] +
-                                      (long double)v->point[2] * tex->vecs[j][2] +
-                                      tex->vecs[j][3];
-                    if (val < st_mins[j]) {
-                        st_mins[j] = val;
-                    }
-                    if (val > st_maxs[j]) {
-                        st_maxs[j] = val;
-                    }
-                }
-
-            }
-
-            for (i = 0; i < 3; i++) // calculate center
-            {
-                center[i] = (mins[i] + maxs[i]) / 2.0;
-            }
+        for (i = 0; i < 3; i++) // calculate center
+        {
+            center[i] = (mins[i] + maxs[i]) / 2.0;
         }
+    }
 }
 /*
 ============
@@ -234,20 +169,11 @@ LinkPlaneFaces
 void LinkPlaneFaces(void) {
     int32_t i;
 
-    if (use_qbsp) {
-        dface_tx *f;
-        f = dfacesX;
-        for (i = 0; i < numfaces; i++, f++) {
-            facelinks[i]                     = planelinks[f->side][f->planenum];
-            planelinks[f->side][f->planenum] = i;
-        }
-    } else {
-        dface_t *f;
-        f = dfaces;
-        for (i = 0; i < numfaces; i++, f++) {
-            facelinks[i]                     = planelinks[f->side][f->planenum];
-            planelinks[f->side][f->planenum] = i;
-        }
+    dface_tx* f;
+    f = dfacesX;
+    for (i = 0; i < numfaces; i++, f++) {
+        facelinks[i] = planelinks[f->side][f->planenum];
+        planelinks[f->side][f->planenum] = i;
     }
 }
 
@@ -432,147 +358,75 @@ void PairEdges() {
     edgeshare_t *e;
 
     memset(&edgeshare, 0, sizeof(edgeshare));
+    dface_tx* f;
+    f = dfacesX;
+    for (i = 0; i < numfaces; i++, f++) {
+        {
+            const dplane_t* fp = getPlaneFromFaceX(f);
+            vec3_t texnormal;
+            const texinfo_t* tex = &texinfo[f->texinfo];
+            CrossProduct(tex->vecs[1], tex->vecs[0], texnormal);
+            VectorNormalize(texnormal, texnormal);
+            if (DotProduct(texnormal, fp->normal) < 0) {
+                VectorSubtract(vec3_origin, texnormal, texnormal);
+            }
+            VectorCopy(texnormal, face_texnormals[i]);
+        }
 
-    if (use_qbsp) {
-        dface_tx *f;
-        f = dfacesX;
-        for (i = 0; i < numfaces; i++, f++) {
-            {
-                const dplane_t *fp = getPlaneFromFaceX(f);
-                vec3_t texnormal;
-                const texinfo_t *tex = &texinfo[f->texinfo];
-                CrossProduct(tex->vecs[1], tex->vecs[0], texnormal);
-                VectorNormalize(texnormal, texnormal);
-                if (DotProduct(texnormal, fp->normal) < 0) {
-                    VectorSubtract(vec3_origin, texnormal, texnormal);
-                }
-                VectorCopy(texnormal, face_texnormals[i]);
+        for (j = 0; j < f->numedges; j++) {
+            k = dsurfedges[f->firstedge + j];
+            if (k < 0) {
+                e = &edgeshare[-k];
+
+                assert(e->facesX[1] == NULL);
+                e->facesX[1] = f;
+            }
+            else {
+                e = &edgeshare[k];
+
+                assert(e->facesX[0] == NULL);
+                e->facesX[0] = f;
             }
 
-            for (j = 0; j < f->numedges; j++) {
-                k = dsurfedges[f->firstedge + j];
-                if (k < 0) {
-                    e = &edgeshare[-k];
-
-                    assert(e->facesX[1] == NULL);
-                    e->facesX[1] = f;
-                } else {
-                    e = &edgeshare[k];
-
-                    assert(e->facesX[0] == NULL);
-                    e->facesX[0] = f;
+            if (e->facesX[0] && e->facesX[1]) {
+                // determine if coplanar
+                if ((e->facesX[0]->planenum == e->facesX[1]->planenum) && (e->facesX[0]->side == e->facesX[1]->side)) {
+                    e->coplanar = true;
+                    VectorCopy(getPlaneFromFaceX(e->facesX[0])->normal, e->interface_normal);
+                    e->cos_normals_angle = 1.0;
                 }
+                else {
+                    // see if they fall into a "smoothing group" based on angle of the normals
+                    vec3_t normals[2];
 
-                if (e->facesX[0] && e->facesX[1]) {
-                    // determine if coplanar
-                    if ((e->facesX[0]->planenum == e->facesX[1]->planenum) && (e->facesX[0]->side == e->facesX[1]->side)) {
+                    VectorCopy(getPlaneFromFaceX(e->facesX[0])->normal, normals[0]);
+                    VectorCopy(getPlaneFromFaceX(e->facesX[1])->normal, normals[1]);
+
+                    e->cos_normals_angle = DotProduct(normals[0], normals[1]);
+
+                    if (e->cos_normals_angle > (1.0 - 0.01)) // qb: get sloppier than 1 - NORMAL_EPSILON
+                    {
                         e->coplanar = true;
                         VectorCopy(getPlaneFromFaceX(e->facesX[0])->normal, e->interface_normal);
                         e->cos_normals_angle = 1.0;
-                    } else {
-                        // see if they fall into a "smoothing group" based on angle of the normals
-                        vec3_t normals[2];
-
-                        VectorCopy(getPlaneFromFaceX(e->facesX[0])->normal, normals[0]);
-                        VectorCopy(getPlaneFromFaceX(e->facesX[1])->normal, normals[1]);
-
-                        e->cos_normals_angle = DotProduct(normals[0], normals[1]);
-
-                        if (e->cos_normals_angle > (1.0 - 0.01)) // qb: get sloppier than 1 - NORMAL_EPSILON
-                        {
-                            e->coplanar = true;
-                            VectorCopy(getPlaneFromFaceX(e->facesX[0])->normal, e->interface_normal);
-                            e->cos_normals_angle = 1.0;
-                        } else if (smoothing_threshold > 0.0) {
-                            if (e->cos_normals_angle >= smoothing_threshold) {
-                                num_smoothing += 1;
-                                VectorAdd(normals[0], normals[1], e->interface_normal);
-                                VectorNormalize(e->interface_normal, e->interface_normal);
-                            }
+                    }
+                    else if (smoothing_threshold > 0.0) {
+                        if (e->cos_normals_angle >= smoothing_threshold) {
+                            num_smoothing += 1;
+                            VectorAdd(normals[0], normals[1], e->interface_normal);
+                            VectorNormalize(e->interface_normal, e->interface_normal);
                         }
                     }
-
-                    if (!VectorCompare(e->interface_normal, vec3_origin)) {
-                        e->smooth = true;
-                    }
-                    if (!GetIntertexnormal(e->facesX[0] - dfacesX, e->facesX[1] - dfacesX)) {
-                        // printf ("!GetIntertexnormal hit.\n");
-                        e->coplanar = false;
-                        VectorClear(e->interface_normal);
-                        e->smooth = false;
-                    }
-                }
-            }
-        }
-    } else // ibsp
-    {
-        dface_t *f;
-        f = dfaces;
-        for (i = 0; i < numfaces; i++, f++) {
-            {
-                const dplane_t *fp = getPlaneFromFace(f);
-                vec3_t texnormal;
-                const texinfo_t *tex = &texinfo[f->texinfo];
-                CrossProduct(tex->vecs[1], tex->vecs[0], texnormal);
-                VectorNormalize(texnormal, texnormal);
-                if (DotProduct(texnormal, fp->normal) < 0) {
-                    VectorSubtract(vec3_origin, texnormal, texnormal);
-                }
-                VectorCopy(texnormal, face_texnormals[i]);
-            }
-
-            for (j = 0; j < f->numedges; j++) {
-                k = dsurfedges[f->firstedge + j];
-                if (k < 0) {
-                    e = &edgeshare[-k];
-
-                    assert(e->faces[1] == NULL);
-                    e->faces[1] = f;
-                } else {
-                    e = &edgeshare[k];
-
-                    assert(e->faces[0] == NULL);
-                    e->faces[0] = f;
                 }
 
-                if (e->faces[0] && e->faces[1]) {
-                    // determine if coplanar
-                    if ((e->faces[0]->planenum == e->faces[1]->planenum) && (e->faces[0]->side == e->faces[1]->side)) {
-                        e->coplanar = true;
-                        VectorCopy(getPlaneFromFace(e->faces[0])->normal, e->interface_normal);
-                        e->cos_normals_angle = 1.0;
-                    } else {
-                        // see if they fall into a "smoothing group" based on angle of the normals
-                        vec3_t normals[2];
-
-                        VectorCopy(getPlaneFromFace(e->faces[0])->normal, normals[0]);
-                        VectorCopy(getPlaneFromFace(e->faces[1])->normal, normals[1]);
-
-                        e->cos_normals_angle = DotProduct(normals[0], normals[1]);
-
-                        if (e->cos_normals_angle > (1.0 - 0.01)) // qb: get sloppier than 1 - NORMAL_EPSILON
-                        {
-                            e->coplanar = true;
-                            VectorCopy(getPlaneFromFace(e->faces[0])->normal, e->interface_normal);
-                            e->cos_normals_angle = 1.0;
-                        } else if (smoothing_threshold > 0.0) {
-                            if (e->cos_normals_angle >= smoothing_threshold) {
-                                num_smoothing += 1;
-                                VectorAdd(normals[0], normals[1], e->interface_normal);
-                                VectorNormalize(e->interface_normal, e->interface_normal);
-                            }
-                        }
-                    }
-
-                    if (!VectorCompare(e->interface_normal, vec3_origin)) {
-                        e->smooth = true;
-                    }
-                    if (!GetIntertexnormal(e->faces[0] - dfaces, e->faces[1] - dfaces)) {
-                        // printf ("!GetIntertexnormal hit.\n");
-                        e->coplanar = false;
-                        VectorClear(e->interface_normal);
-                        e->smooth = false;
-                    }
+                if (!VectorCompare(e->interface_normal, vec3_origin)) {
+                    e->smooth = true;
+                }
+                if (!GetIntertexnormal(e->facesX[0] - dfacesX, e->facesX[1] - dfacesX)) {
+                    // printf ("!GetIntertexnormal hit.\n");
+                    e->coplanar = false;
+                    VectorClear(e->interface_normal);
+                    e->smooth = false;
                 }
             }
         }
@@ -587,10 +441,7 @@ void PairEdges() {
         vec3_t normal, normals;
         vec3_t edgenormal;
         int32_t r, count, mme;
-        if (use_qbsp)
-            mme = MAX_MAP_EDGES_QBSP;
-        else
-            mme = MAX_MAP_EDGES;
+        mme = MAX_MAP_EDGES_QBSP;
 
         for (edgeabs = 0; edgeabs < mme; edgeabs++) {
             e = &edgeshare[edgeabs];
@@ -598,119 +449,61 @@ void PairEdges() {
                 continue;
             VectorCopy(e->interface_normal, edgenormal);
 
-            if (use_qbsp) {
-                dface_tx *f, *fcurrent, *fnext;
+            dface_tx* f, * fcurrent, * fnext;
 
-                if (dedgesX[edgeabs].v[0] == dedgesX[edgeabs].v[1]) {
+            if (dedgesX[edgeabs].v[0] == dedgesX[edgeabs].v[1]) {
+                vec3_t errorpos;
+                VectorCopy(dvertexes[dedgesX[edgeabs].v[0]].point, errorpos);
+                VectorAdd(errorpos, face_offset[e->facesX[0] - dfacesX], errorpos);
+                Error("PairEdges: invalid edge at (%f,%f,%f)", errorpos[0], errorpos[1], errorpos[2]);
+                VectorCopy(edgenormal, e->vertex_normal[0]);
+                VectorCopy(edgenormal, e->vertex_normal[1]);
+            }
+            else {
+                const dplane_t* p0 = getPlaneFromFaceX(e->facesX[0]);
+                const dplane_t* p1 = getPlaneFromFaceX(e->facesX[1]);
+
+                for (edgeend = 0; edgeend < 2; edgeend++) {
                     vec3_t errorpos;
-                    VectorCopy(dvertexes[dedgesX[edgeabs].v[0]].point, errorpos);
+                    VectorCopy(dvertexes[dedgesX[edgeabs].v[edgeend]].point, errorpos);
                     VectorAdd(errorpos, face_offset[e->facesX[0] - dfacesX], errorpos);
-                    Error("PairEdges: invalid edge at (%f,%f,%f)", errorpos[0], errorpos[1], errorpos[2]);
-                    VectorCopy(edgenormal, e->vertex_normal[0]);
-                    VectorCopy(edgenormal, e->vertex_normal[1]);
-                } else {
-                    const dplane_t *p0 = getPlaneFromFaceX(e->facesX[0]);
-                    const dplane_t *p1 = getPlaneFromFaceX(e->facesX[1]);
+                    angles = 0;
+                    VectorClear(normals);
 
-                    for (edgeend = 0; edgeend < 2; edgeend++) {
-                        vec3_t errorpos;
-                        VectorCopy(dvertexes[dedgesX[edgeabs].v[edgeend]].point, errorpos);
-                        VectorAdd(errorpos, face_offset[e->facesX[0] - dfacesX], errorpos);
-                        angles = 0;
-                        VectorClear(normals);
-
-                        for (d = 0; d < 2; d++) {
-                            f     = e->facesX[d];
-                            count = 0, fnext = f, edgeabsnext = edgeabs, edgeendnext = edgeend;
-                            while (1) {
-                                fcurrent = fnext;
-                                r        = AddFaceForVertexNormalX(edgeabsnext, edgeabsnext, edgeendnext, edgeendnext, fcurrent, fnext, angle, normal);
-                                count++;
-                                if (r == -1) {
-                                    // qprintf("PairEdges: face edges mislink at (%f,%f,%f)", errorpos[0], errorpos[1], errorpos[2]);
-                                    break;
-                                }
-                                if (count >= 100) {
-                                    // qprintf("PairEdges: faces mislink at (%f,%f,%f)", errorpos[0], errorpos[1], errorpos[2]);
-                                    break;
-                                }
-                                if (DotProduct(normal, p0->normal) <= NORMAL_EPSILON || DotProduct(normal, p1->normal) <= NORMAL_EPSILON)
-                                    break;
-                                if (DotProduct(edgenormal, normal) + NORMAL_EPSILON < smoothing_threshold)
-                                    break;
-                                if (!GetIntertexnormal(fcurrent - dfacesX, e->facesX[0] - dfacesX) || !GetIntertexnormal(fcurrent - dfacesX, e->facesX[1] - dfacesX))
-                                    break;
-                                angles += angle;
-                                VectorMA(normals, angle, normal, normals);
-                                if (r != 0 || fnext == f)
-                                    break;
+                    for (d = 0; d < 2; d++) {
+                        f = e->facesX[d];
+                        count = 0, fnext = f, edgeabsnext = edgeabs, edgeendnext = edgeend;
+                        while (1) {
+                            fcurrent = fnext;
+                            r = AddFaceForVertexNormalX(edgeabsnext, edgeabsnext, edgeendnext, edgeendnext, fcurrent, fnext, angle, normal);
+                            count++;
+                            if (r == -1) {
+                                // qprintf("PairEdges: face edges mislink at (%f,%f,%f)", errorpos[0], errorpos[1], errorpos[2]);
+                                break;
                             }
-                        }
-
-                        if (angles < NORMAL_EPSILON) {
-                            VectorCopy(edgenormal, e->vertex_normal[edgeend]);
-                            // qprintf("PairEdges: no valid faces at (%f,%f,%f)", errorpos[0], errorpos[1], errorpos[2]);
-                        } else {
-                            VectorNormalize(normals, e->vertex_normal[edgeend]);
+                            if (count >= 100) {
+                                // qprintf("PairEdges: faces mislink at (%f,%f,%f)", errorpos[0], errorpos[1], errorpos[2]);
+                                break;
+                            }
+                            if (DotProduct(normal, p0->normal) <= NORMAL_EPSILON || DotProduct(normal, p1->normal) <= NORMAL_EPSILON)
+                                break;
+                            if (DotProduct(edgenormal, normal) + NORMAL_EPSILON < smoothing_threshold)
+                                break;
+                            if (!GetIntertexnormal(fcurrent - dfacesX, e->facesX[0] - dfacesX) || !GetIntertexnormal(fcurrent - dfacesX, e->facesX[1] - dfacesX))
+                                break;
+                            angles += angle;
+                            VectorMA(normals, angle, normal, normals);
+                            if (r != 0 || fnext == f)
+                                break;
                         }
                     }
-                }
-            } else // ibsp
-            {
-                dface_t *f, *fcurrent, *fnext;
 
-                if (dedges[edgeabs].v[0] == dedges[edgeabs].v[1]) {
-                    vec3_t errorpos;
-                    VectorCopy(dvertexes[dedges[edgeabs].v[0]].point, errorpos);
-                    VectorAdd(errorpos, face_offset[e->faces[0] - dfaces], errorpos);
-                    Error("PairEdges: invalid edge at (%f,%f,%f)", errorpos[0], errorpos[1], errorpos[2]);
-                    VectorCopy(edgenormal, e->vertex_normal[0]);
-                    VectorCopy(edgenormal, e->vertex_normal[1]);
-                } else {
-                    const dplane_t *p0 = getPlaneFromFace(e->faces[0]);
-                    const dplane_t *p1 = getPlaneFromFace(e->faces[1]);
-
-                    for (edgeend = 0; edgeend < 2; edgeend++) {
-                        vec3_t errorpos;
-                        VectorCopy(dvertexes[dedges[edgeabs].v[edgeend]].point, errorpos);
-                        VectorAdd(errorpos, face_offset[e->faces[0] - dfaces], errorpos);
-                        angles = 0;
-                        VectorClear(normals);
-
-                        for (d = 0; d < 2; d++) {
-                            f     = e->faces[d];
-                            count = 0, fnext = f, edgeabsnext = edgeabs, edgeendnext = edgeend;
-                            while (1) {
-                                fcurrent = fnext;
-                                r        = AddFaceForVertexNormal(edgeabsnext, edgeabsnext, edgeendnext, edgeendnext, fcurrent, fnext, angle, normal);
-                                count++;
-                                if (r == -1) {
-                                    // qprintf("PairEdges: face edges mislink at (%f,%f,%f)", errorpos[0], errorpos[1], errorpos[2]);
-                                    break;
-                                }
-                                if (count >= 100) {
-                                    // qprintf("PairEdges: faces mislink at (%f,%f,%f)", errorpos[0], errorpos[1], errorpos[2]);
-                                    break;
-                                }
-                                if (DotProduct(normal, p0->normal) <= NORMAL_EPSILON || DotProduct(normal, p1->normal) <= NORMAL_EPSILON)
-                                    break;
-                                if (DotProduct(edgenormal, normal) + NORMAL_EPSILON < smoothing_threshold)
-                                    break;
-                                if (!GetIntertexnormal(fcurrent - dfaces, e->faces[0] - dfaces) || !GetIntertexnormal(fcurrent - dfaces, e->faces[1] - dfaces))
-                                    break;
-                                angles += angle;
-                                VectorMA(normals, angle, normal, normals);
-                                if (r != 0 || fnext == f)
-                                    break;
-                            }
-                        }
-
-                        if (angles < NORMAL_EPSILON) {
-                            VectorCopy(edgenormal, e->vertex_normal[edgeend]);
-                            // qprintf("PairEdges: no valid faces at (%f,%f,%f)", errorpos[0], errorpos[1], errorpos[2]);
-                        } else {
-                            VectorNormalize(normals, e->vertex_normal[edgeend]);
-                        }
+                    if (angles < NORMAL_EPSILON) {
+                        VectorCopy(edgenormal, e->vertex_normal[edgeend]);
+                        // qprintf("PairEdges: no valid faces at (%f,%f,%f)", errorpos[0], errorpos[1], errorpos[2]);
+                    }
+                    else {
+                        VectorNormalize(normals, e->vertex_normal[edgeend]);
                     }
                 }
             }
@@ -1122,63 +915,32 @@ void CalcFaceExtents(lightinfo_t *l) {
     dvertex_t *v;
     texinfo_t *tex;
     vec3_t vt;
+    map = QBSP_SINGLEMAP;
+    dface_tx* s;
+    s = l->faceX;
 
-    if (use_qbsp) {
-        map = QBSP_SINGLEMAP;
-        dface_tx *s;
-        s       = l->faceX;
+    mins[0] = mins[1] = BOGUS_RANGE;
+    maxs[0] = maxs[1] = -BOGUS_RANGE;
 
-        mins[0] = mins[1] = BOGUS_RANGE;
-        maxs[0] = maxs[1] = -BOGUS_RANGE;
+    tex = &texinfo[s->texinfo];
 
-        tex               = &texinfo[s->texinfo];
+    for (i = 0; i < s->numedges; i++) {
+        e = dsurfedges[s->firstedge + i];
 
-        for (i = 0; i < s->numedges; i++) {
-            e = dsurfedges[s->firstedge + i];
+        if (e >= 0)
+            v = dvertexes + dedgesX[e].v[0];
+        else
+            v = dvertexes + dedgesX[-e].v[1];
 
-            if (e >= 0)
-                v = dvertexes + dedgesX[e].v[0];
-            else
-                v = dvertexes + dedgesX[-e].v[1];
+        //		VectorAdd (v->point, l->modelorg, vt);
+        VectorCopy(v->point, vt);
 
-            //		VectorAdd (v->point, l->modelorg, vt);
-            VectorCopy(v->point, vt);
-
-            for (j = 0; j < 2; j++) {
-                val = DotProduct(vt, tex->vecs[j]) + tex->vecs[j][3];
-                if (val < mins[j])
-                    mins[j] = val;
-                if (val > maxs[j])
-                    maxs[j] = val;
-            }
-        }
-    } else {
-        dface_t *s;
-        s       = l->face;
-
-        mins[0] = mins[1] = BOGUS_RANGE;
-        maxs[0] = maxs[1] = -BOGUS_RANGE;
-
-        tex               = &texinfo[s->texinfo];
-
-        for (i = 0; i < s->numedges; i++) {
-            e = dsurfedges[s->firstedge + i];
-
-            if (e >= 0)
-                v = dvertexes + dedges[e].v[0];
-            else
-                v = dvertexes + dedges[-e].v[1];
-
-            //		VectorAdd (v->point, l->modelorg, vt);
-            VectorCopy(v->point, vt);
-
-            for (j = 0; j < 2; j++) {
-                val = DotProduct(vt, tex->vecs[j]) + tex->vecs[j][3];
-                if (val < mins[j])
-                    mins[j] = val;
-                if (val > maxs[j])
-                    maxs[j] = val;
-            }
+        for (j = 0; j < 2; j++) {
+            val = DotProduct(vt, tex->vecs[j]) + tex->vecs[j][3];
+            if (val < mins[j])
+                mins[j] = val;
+            if (val > maxs[j])
+                maxs[j] = val;
         }
     }
 
@@ -1224,17 +986,13 @@ Fills in texorg, worldtotex. and textoworld
 ================
 */
 void CalcFaceVectors(lightinfo_t *l) {
-    texinfo_t *tex;
+    texinfo_t *tex = &texinfo[l->faceX->texinfo];
     int32_t i, j;
     vec3_t texnormal;
     vec_t distscale;
     vec_t dist, len;
     int32_t w, h;
 
-    if (use_qbsp)
-        tex = &texinfo[l->faceX->texinfo];
-    else
-        tex = &texinfo[l->face->texinfo];
 
     // convert from float to double
     for (i = 0; i < 2; i++)
@@ -1331,20 +1089,11 @@ void CalcPoints(lightinfo_t *l, float sofs, float tofs) {
                 for (j = 0; j < 3; j++)
                     surf[j] = l->texorg[j] + l->textoworld[0][j] * us + l->textoworld[1][j] * ut;
 
-                if (use_qbsp) {
-                    dleaf_tx *leaf;
-                    leaf = RadPointInLeafX(surf);
-                    if (leaf->contents != CONTENTS_SOLID) {
-                        if (!TestLine_r(0, facemid, surf))
-                            break; // got it
-                    }
-                } else {
-                    dleaf_t *leaf;
-                    leaf = RadPointInLeaf(surf);
-                    if (leaf->contents != CONTENTS_SOLID) {
-                        if (!TestLine_r(0, facemid, surf))
-                            break; // got it
-                    }
+                dleaf_tx* leaf;
+                leaf = RadPointInLeafX(surf);
+                if (leaf->contents != CONTENTS_SOLID) {
+                    if (!TestLine_r(0, facemid, surf))
+                        break; // got it
                 }
 
                 // nudge it
@@ -1510,13 +1259,8 @@ void CreateDirectLights(void) {
 
         dl->nodenum = PointInNodenum(dl->origin);
 
-        if (use_qbsp) {
-            leafX   = RadPointInLeafX(dl->origin);
-            cluster = leafX->cluster;
-        } else {
-            leaf    = RadPointInLeaf(dl->origin);
-            cluster = leaf->cluster;
-        }
+        leafX = RadPointInLeafX(dl->origin);
+        cluster = leafX->cluster;
 
         dl->next              = directlights[cluster];
         directlights[cluster] = dl;
@@ -1614,15 +1358,10 @@ void CreateDirectLights(void) {
 
         VectorCopy(p->origin, dl->origin);
 
-        if (use_qbsp) {
-            leafX     = RadPointInLeafX(dl->origin);
-            cluster   = leafX->cluster;
-            dl->leafX = leafX;
-        } else {
-            leaf     = RadPointInLeaf(dl->origin);
-            cluster  = leaf->cluster;
-            dl->leaf = leaf;
-        }
+        leafX = RadPointInLeafX(dl->origin);
+        cluster = leafX->cluster;
+        dl->leafX = leafX;
+
         dl->next              = directlights[cluster];
         directlights[cluster] = dl;
 
@@ -1660,46 +1399,39 @@ re_test:
     // headNode is guaranteed to be <= nodeNum1 and nodeNum1 is < nodeNum2
     if (headNode == nodeNum1)
         return headNode;
+    dnode_tx* node;
+    child1 = (node = dnodesX + headNode)->children[1];
 
-    if (use_qbsp) {
-        dnode_tx *node;
-        child1 = (node = dnodesX + headNode)->children[1];
-
-        if (nodeNum2 < child1)
-            // Both nodeNum1 and nodeNum2 are less than child1.
-            // In this case, child0 is always a node, not a leaf, so we don't need
-            // to check to make sure.
-            headNode = node->children[0];
-        else if (nodeNum1 < child1)
-            // Child1 sits between nodeNum1 and nodeNum2.
-            // This means that headNode is the lowest node which contains both
-            // nodeNum1 and nodeNum2.
-            return headNode;
-        else if (child1 > 0)
-            // Both nodeNum1 and nodeNum2 are greater than child1.
-            // If child1 is a node, that means it contains both nodeNum1 and
-            // nodeNum2.
-            headNode = child1;
-        else
-            // Child1 is a leaf, therefore by process of elimination child0 must be
-            // a node and must contain boste nodeNum1 and nodeNum2.
-            headNode = node->children[0];
-        // goto instead of while(1) because it makes the CPU branch predict easier
-
-    } else {
-        dnode_t *node;
-        child1 = (node = dnodes + headNode)->children[1];
-
-        if (nodeNum2 < child1)
-            headNode = node->children[0];
-        else if (nodeNum1 < child1)
-            return headNode;
-        else if (child1 > 0)
-            headNode = child1;
-        else
-            headNode = node->children[0];
+    if (nodeNum2 < child1)
+    {
+        // Both nodeNum1 and nodeNum2 are less than child1.
+        // In this case, child0 is always a node, not a leaf, so we don't need
+        // to check to make sure.
+        headNode = node->children[0];
+    }
+    else if (nodeNum1 < child1)
+    {
+        // Child1 sits between nodeNum1 and nodeNum2.
+        // This means that headNode is the lowest node which contains both
+        // nodeNum1 and nodeNum2.
+        return headNode;
+    }
+    else if (child1 > 0)
+    {
+        // Both nodeNum1 and nodeNum2 are greater than child1.
+        // If child1 is a node, that means it contains both nodeNum1 and
+        // nodeNum2.
+        headNode = child1;
     }
 
+    else
+    {
+        // Child1 is a leaf, therefore by process of elimination child0 must be
+        // a node and must contain boste nodeNum1 and nodeNum2.
+        headNode = node->children[0];
+    }
+
+    // goto instead of while(1) because it makes the CPU branch predict easier
     goto re_test;
 }
 
@@ -1820,21 +1552,12 @@ static void LightContributionToPoint(directlight_t *l, vec3_t pos, int32_t noden
                 return; // behind light surface
 
             if (!noedgefix) {
-                if (use_qbsp) {    // qb: 4x lightmap res
-                    if (dist > 36) // qb: edge lighting fix- don't drop off right away
-                        scale = (l->intensity / ((dist - 15) * (dist - 15))) * dot * dot2;
-                    else if (dist > 16)
-                        scale = (l->intensity / (dist - 7)) * dot * dot2;
-                    else
-                        scale = l->intensity * dot * dot2;
-                } else {
-                    if (dist > 18) // qb: edge lighting fix- don't drop off right away
-                        scale = (l->intensity / ((dist - 15) * (dist - 15))) * dot * dot2;
-                    else if (dist > 8)
-                        scale = (l->intensity / (dist - 7)) * dot * dot2;
-                    else
-                        scale = l->intensity * dot * dot2;
-                }
+                if (dist > 36) // qb: edge lighting fix- don't drop off right away
+                    scale = (l->intensity / ((dist - 15) * (dist - 15))) * dot * dot2;
+                else if (dist > 16)
+                    scale = (l->intensity / (dist - 7)) * dot * dot2;
+                else
+                    scale = l->intensity * dot * dot2;
 
             } else
                 scale = (l->intensity / (dist * dist)) * dot * dot2;
@@ -1976,16 +1699,9 @@ void GetPhongNormal(int32_t facenum, vec3_t spot, vec3_t phongnormal) {
     const dface_tx *fx = dfacesX + facenum;
     const dface_t *fi  = dfaces + facenum;
 
-    if (use_qbsp) {
-        const dplane_t *p = getPlaneFromFaceX(fx);
-        ne                = fx->numedges;
-        VectorCopy(p->normal, facenormal);
-    } else {
-        const dplane_t *p = getPlaneFromFace(fi);
-        ne                = fi->numedges;
-        VectorCopy(p->normal, facenormal);
-    }
-
+    const dplane_t* p = getPlaneFromFaceX(fx);
+    ne = fx->numedges;
+    VectorCopy(p->normal, facenormal);
     VectorCopy(facenormal, phongnormal);
 
     for (j = 0; j < ne; j++) {
@@ -2007,71 +1723,38 @@ void GetPhongNormal(int32_t facenum, vec3_t spot, vec3_t phongnormal) {
         float aa;
         float bb;
         float ab;
-
-        if (use_qbsp) {
-            if (j) {
-                prev_edge = fx->firstedge + ((j + fx->numedges - 1) % fx->numedges);
-            } else {
-                prev_edge = fx->firstedge + fx->numedges - 1;
-            }
-
-            if ((j + 1) != fx->numedges) {
-                next_edge = fx->firstedge + ((j + 1) % fx->numedges);
-            } else {
-                next_edge = fx->firstedge;
-            }
-
-            e   = dsurfedges[fx->firstedge + j];
-            e1  = dsurfedges[prev_edge];
-            e2  = dsurfedges[next_edge];
-
-            es  = &edgeshare[abs(e)];
-            es1 = &edgeshare[abs(e1)];
-            es2 = &edgeshare[abs(e2)];
-
-            if ((!es->smooth || es->coplanar) && (!es1->smooth || es1->coplanar) && (!es2->smooth || es2->coplanar)) {
-                continue;
-            }
-            if (e > 0) {
-                VectorCopy(dvertexes[dedgesX[e].v[0]].point, p1);
-                VectorCopy(dvertexes[dedgesX[e].v[1]].point, p2);
-            } else {
-                VectorCopy(dvertexes[dedgesX[-e].v[1]].point, p1);
-                VectorCopy(dvertexes[dedgesX[-e].v[0]].point, p2);
-            }
+        if (j) {
+            prev_edge = fx->firstedge + ((j + fx->numedges - 1) % fx->numedges);
+        }
+        else {
+            prev_edge = fx->firstedge + fx->numedges - 1;
         }
 
+        if ((j + 1) != fx->numedges) {
+            next_edge = fx->firstedge + ((j + 1) % fx->numedges);
+        }
         else {
-            if (j) {
-                prev_edge = fi->firstedge + ((j + fi->numedges - 1) % fi->numedges);
-            } else {
-                prev_edge = fi->firstedge + fi->numedges - 1;
-            }
+            next_edge = fx->firstedge;
+        }
 
-            if ((j + 1) != fi->numedges) {
-                next_edge = fi->firstedge + ((j + 1) % fi->numedges);
-            } else {
-                next_edge = fi->firstedge;
-            }
+        e = dsurfedges[fx->firstedge + j];
+        e1 = dsurfedges[prev_edge];
+        e2 = dsurfedges[next_edge];
 
-            e   = dsurfedges[fi->firstedge + j];
-            e1  = dsurfedges[prev_edge];
-            e2  = dsurfedges[next_edge];
+        es = &edgeshare[abs(e)];
+        es1 = &edgeshare[abs(e1)];
+        es2 = &edgeshare[abs(e2)];
 
-            es  = &edgeshare[abs(e)];
-            es1 = &edgeshare[abs(e1)];
-            es2 = &edgeshare[abs(e2)];
-
-            if ((!es->smooth || es->coplanar) && (!es1->smooth || es1->coplanar) && (!es2->smooth || es2->coplanar)) {
-                continue;
-            }
-            if (e > 0) {
-                VectorCopy(dvertexes[dedges[e].v[0]].point, p1);
-                VectorCopy(dvertexes[dedges[e].v[1]].point, p2);
-            } else {
-                VectorCopy(dvertexes[dedges[-e].v[1]].point, p1);
-                VectorCopy(dvertexes[dedges[-e].v[0]].point, p2);
-            }
+        if ((!es->smooth || es->coplanar) && (!es1->smooth || es1->coplanar) && (!es2->smooth || es2->coplanar)) {
+            continue;
+        }
+        if (e > 0) {
+            VectorCopy(dvertexes[dedgesX[e].v[0]].point, p1);
+            VectorCopy(dvertexes[dedgesX[e].v[1]].point, p2);
+        }
+        else {
+            VectorCopy(dvertexes[dedgesX[-e].v[1]].point, p1);
+            VectorCopy(dvertexes[dedgesX[-e].v[0]].point, p2);
         }
 
         // Adjust for origin-based models
@@ -2185,69 +1868,37 @@ void BuildFacelights(int32_t facenum) {
     liteinfo = malloc(sizeof(*liteinfo) * 5);
     styletable = malloc(sizeof(*styletable) * MAX_LSTYLES);
 
-    if (use_qbsp) {
-        dface_tx *this_face;
-        this_face = &dfacesX[facenum];
+    dface_tx* this_face;
+    this_face = &dfacesX[facenum];
 
-        if (texinfo[this_face->texinfo].flags & (SURF_WARP | SURF_SKY))
-            goto cleanup; // non-lit texture
+    if (texinfo[this_face->texinfo].flags & (SURF_WARP | SURF_SKY))
+        goto cleanup; // non-lit texture
 
-        memset(styletable, 0, sizeof(*styletable) * MAX_LSTYLES);
+    memset(styletable, 0, sizeof(*styletable) * MAX_LSTYLES);
 
-        if (extrasamples) // set with -extra option
-            numsamples = 5;
-        else
-            numsamples = 1;
-        for (i = 0; i < numsamples; i++) {
-            memset(&liteinfo[i], 0, sizeof(liteinfo[i]));
-            liteinfo[i].surfnum = facenum;
-            liteinfo[i].faceX   = this_face;
-            VectorCopy(dplanes[this_face->planenum].normal, liteinfo[i].facenormal);
-            liteinfo[i].facedist = dplanes[this_face->planenum].dist;
-            if (this_face->side) {
-                VectorSubtract(vec3_origin, liteinfo[i].facenormal, liteinfo[i].facenormal);
-                liteinfo[i].facedist = -liteinfo[i].facedist;
-            }
-
-            // get the origin offset for rotating bmodels
-            VectorCopy(face_offset[facenum], liteinfo[i].modelorg);
-
-            CalcFaceVectors(&liteinfo[i]);
-            CalcFaceExtents(&liteinfo[i]);
-            CalcPoints(&liteinfo[i], sampleofs[i][0], sampleofs[i][1]);
+    if (extrasamples) // set with -extra option
+        numsamples = 5;
+    else
+        numsamples = 1;
+    for (i = 0; i < numsamples; i++) {
+        memset(&liteinfo[i], 0, sizeof(liteinfo[i]));
+        liteinfo[i].surfnum = facenum;
+        liteinfo[i].faceX = this_face;
+        VectorCopy(dplanes[this_face->planenum].normal, liteinfo[i].facenormal);
+        liteinfo[i].facedist = dplanes[this_face->planenum].dist;
+        if (this_face->side) {
+            VectorSubtract(vec3_origin, liteinfo[i].facenormal, liteinfo[i].facenormal);
+            liteinfo[i].facedist = -liteinfo[i].facedist;
         }
-    } else {
-        dface_t *this_face;
-        this_face = &dfaces[facenum];
 
-        if (texinfo[this_face->texinfo].flags & (SURF_WARP | SURF_SKY))
-            goto cleanup; // non-lit texture
+        // get the origin offset for rotating bmodels
+        VectorCopy(face_offset[facenum], liteinfo[i].modelorg);
 
-        memset(styletable, 0, sizeof(*styletable) * MAX_LSTYLES);
-
-        if (extrasamples) // set with -extra option
-            numsamples = 5;
-        else
-            numsamples = 1;
-        for (i = 0; i < numsamples; i++) {
-            memset(&liteinfo[i], 0, sizeof(liteinfo[i]));
-            liteinfo[i].surfnum = facenum;
-            liteinfo[i].face    = this_face;
-            VectorCopy(dplanes[this_face->planenum].normal, liteinfo[i].facenormal);
-            liteinfo[i].facedist = dplanes[this_face->planenum].dist;
-            if (this_face->side) {
-                VectorSubtract(vec3_origin, liteinfo[i].facenormal, liteinfo[i].facenormal);
-                liteinfo[i].facedist = -liteinfo[i].facedist;
-            }
-
-            // get the origin offset for rotating bmodels
-            VectorCopy(face_offset[facenum], liteinfo[i].modelorg);
-
-            CalcFaceVectors(&liteinfo[i]);
-            CalcFaceExtents(&liteinfo[i]);
-            CalcPoints(&liteinfo[i], sampleofs[i][0], sampleofs[i][1]);
-        }
+        CalcFaceVectors(&liteinfo[i]);
+        CalcFaceExtents(&liteinfo[i]);
+        CalcPoints(&liteinfo[i], sampleofs[i][0], sampleofs[i][1]);
     }
+
     tablesize     = liteinfo[0].numsurfpt * sizeof(vec3_t);
     styletable[0] = malloc(tablesize);
     memset(styletable[0], 0, tablesize);
@@ -2353,258 +2004,129 @@ void FinalLightFace(int32_t facenum) {
     }
     ThreadUnlock();
 
-    if (use_qbsp) {
-        dface_tx *f;
-        f = &dfacesX[facenum];
+    dface_tx* f;
+    f = &dfacesX[facenum];
 
-        if (texinfo[f->texinfo].flags & (SURF_WARP | SURF_SKY))
-            return; // non-lit texture
+    if (texinfo[f->texinfo].flags & (SURF_WARP | SURF_SKY))
+        return; // non-lit texture
 
-        f->lightofs  = i;
-        f->styles[0] = 0;
-        f->styles[1] = f->styles[2] = f->styles[3] = 0xff;
+    f->lightofs = i;
+    f->styles[0] = 0;
+    f->styles[1] = f->styles[2] = f->styles[3] = 0xff;
 
-        //
-        // set up the triangulation
-        //
-        if (numbounce > 0) {
-            ClearBounds(facemins, facemaxs);
-            for (i = 0; i < f->numedges; i++) {
-                int32_t ednum;
+    //
+    // set up the triangulation
+    //
+    if (numbounce > 0) {
+        ClearBounds(facemins, facemaxs);
+        for (i = 0; i < f->numedges; i++) {
+            int32_t ednum;
 
-                ednum = dsurfedges[f->firstedge + i];
-                if (ednum >= 0)
-                    AddPointToBounds(dvertexes[dedgesX[ednum].v[0]].point,
-                                     facemins, facemaxs);
-                else
-                    AddPointToBounds(dvertexes[dedgesX[-ednum].v[1]].point,
-                                     facemins, facemaxs);
-            }
-
-            trian = AllocTriangulation(&dplanes[f->planenum]);
-
-            // for all faces on the plane, add the nearby patches
-            // to the triangulation
-            for (pfacenum = planelinks[f->side][f->planenum]; pfacenum; pfacenum = facelinks[pfacenum]) {
-                for (patch = face_patches[pfacenum]; patch; patch = patch->next) {
-                    for (i = 0; i < 3; i++) {
-                        if (facemins[i] - patch->origin[i] > subdiv * 2)
-                            break;
-                        if (patch->origin[i] - facemaxs[i] > subdiv * 2)
-                            break;
-                    }
-                    if (i != 3)
-                        continue; // not needed for this face
-                    AddPointToTriangulation(patch, trian);
-                }
-            }
-            for (i = 0; i < trian->numpoints; i++)
-                memset(trian->edgematrix[i], 0, trian->numpoints * sizeof(trian->edgematrix[0][0]));
-            TriangulatePoints(trian);
+            ednum = dsurfedges[f->firstedge + i];
+            if (ednum >= 0)
+                AddPointToBounds(dvertexes[dedgesX[ednum].v[0]].point,
+                    facemins, facemaxs);
+            else
+                AddPointToBounds(dvertexes[dedgesX[-ednum].v[1]].point,
+                    facemins, facemaxs);
         }
 
-        //
-        // sample the triangulation
-        //
+        trian = AllocTriangulation(&dplanes[f->planenum]);
 
-        dest = &dlightdata_ptr[f->lightofs];
-
-        if (fl->numstyles > MAXLIGHTMAPS) {
-            fl->numstyles = MAXLIGHTMAPS;
-            //	printf ("face with too many lightstyles: (%f %f %f)\n",
-            //		face_patches[facenum]->origin[0],
-            //		face_patches[facenum]->origin[1],
-            //		face_patches[facenum]->origin[2]
-            //		);
-        }
-        for (st = 0; st < fl->numstyles; st++) {
-            last_valid    = NULL;
-            f->styles[st] = fl->stylenums[st];
-
-            for (j = 0; j < fl->numsamples; j++) {
-                VectorCopy((fl->samples[st] + j * 3), lb);
-                if (numbounce > 0 && st == 0) {
-                    vec3_t add;
-
-                    SampleTriangulation(fl->origins + j * 3, trian, &last_valid, add);
-                    VectorAdd(lb, add, lb);
+        // for all faces on the plane, add the nearby patches
+        // to the triangulation
+        for (pfacenum = planelinks[f->side][f->planenum]; pfacenum; pfacenum = facelinks[pfacenum]) {
+            for (patch = face_patches[pfacenum]; patch; patch = patch->next) {
+                for (i = 0; i < 3; i++) {
+                    if (facemins[i] - patch->origin[i] > subdiv * 2)
+                        break;
+                    if (patch->origin[i] - facemaxs[i] > subdiv * 2)
+                        break;
                 }
-
-                /*
-                 * to allow experimenting, ambient and lightscale are not limited
-                 *  to reasonable ranges.
-                 */
-                if (ambient >= -255.0f && ambient <= 255.0f) {
-                    // add fixed white ambient.
-                    lb[0] += ambient;
-                    lb[1] += ambient;
-                    lb[2] += ambient;
-                }
-                if (lightscale > 0.0f) {
-                    // apply lightscale, scale down or up
-                    lb[0] *= lightscale;
-                    lb[1] *= lightscale;
-                    lb[2] *= lightscale;
-                }
-                // negative values not allowed
-                lb[0] = (lb[0] < 0.0f) ? 0.0f : lb[0];
-                lb[1] = (lb[1] < 0.0f) ? 0.0f : lb[1];
-                lb[2] = (lb[2] < 0.0f) ? 0.0f : lb[2];
-
-                /*			qprintf("{%f %f %f}:",lb[0],lb[1],lb[2]);*/
-
-                // determine max of R,G,B
-                max   = lb[0] > lb[1] ? lb[0] : lb[1];
-                max   = max > lb[2] ? max : lb[2];
-
-                if (max < 1.0f)
-                    max = 1.0f;
-
-                // note that maxlight based scaling is per-sample based on
-                //  highest value of R, G, and B
-                // adjust for -maxlight option
-                newmax = max;
-                if (max > maxlight) {
-                    newmax = maxlight;
-                    newmax /= max; // scaling factor 0.0..1.0
-                    // scale into 0.0..maxlight range
-                    lb[0] *= newmax;
-                    lb[1] *= newmax;
-                    lb[2] *= newmax;
-                }
-
-                // and output to 8:8:8 RGB
-                *dest++ = (byte)(lb[0] + 0.5);
-                *dest++ = (byte)(lb[1] + 0.5);
-                *dest++ = (byte)(lb[2] + 0.5);
+                if (i != 3)
+                    continue; // not needed for this face
+                AddPointToTriangulation(patch, trian);
             }
         }
-    } else // ibsp
-    {
-        dface_t *f;
-        f = &dfaces[facenum];
+        for (i = 0; i < trian->numpoints; i++)
+            memset(trian->edgematrix[i], 0, trian->numpoints * sizeof(trian->edgematrix[0][0]));
+        TriangulatePoints(trian);
+    }
 
-        if (texinfo[f->texinfo].flags & (SURF_WARP | SURF_SKY))
-            return; // non-lit texture
+    //
+    // sample the triangulation
+    //
 
-        f->lightofs  = i;
-        f->styles[0] = 0;
-        f->styles[1] = f->styles[2] = f->styles[3] = 0xff;
+    dest = &dlightdata_ptr[f->lightofs];
 
-        //
-        // set up the triangulation
-        //
-        if (numbounce > 0) {
-            ClearBounds(facemins, facemaxs);
-            for (i = 0; i < f->numedges; i++) {
-                int32_t ednum;
+    if (fl->numstyles > MAXLIGHTMAPS) {
+        fl->numstyles = MAXLIGHTMAPS;
+        //	printf ("face with too many lightstyles: (%f %f %f)\n",
+        //		face_patches[facenum]->origin[0],
+        //		face_patches[facenum]->origin[1],
+        //		face_patches[facenum]->origin[2]
+        //		);
+    }
+    for (st = 0; st < fl->numstyles; st++) {
+        last_valid = NULL;
+        f->styles[st] = fl->stylenums[st];
 
-                ednum = dsurfedges[f->firstedge + i];
-                if (ednum >= 0)
-                    AddPointToBounds(dvertexes[dedges[ednum].v[0]].point,
-                                     facemins, facemaxs);
-                else
-                    AddPointToBounds(dvertexes[dedges[-ednum].v[1]].point,
-                                     facemins, facemaxs);
+        for (j = 0; j < fl->numsamples; j++) {
+            VectorCopy((fl->samples[st] + j * 3), lb);
+            if (numbounce > 0 && st == 0) {
+                vec3_t add;
+
+                SampleTriangulation(fl->origins + j * 3, trian, &last_valid, add);
+                VectorAdd(lb, add, lb);
             }
 
-            trian = AllocTriangulation(&dplanes[f->planenum]);
-
-            // for all faces on the plane, add the nearby patches
-            // to the triangulation
-            for (pfacenum = planelinks[f->side][f->planenum]; pfacenum; pfacenum = facelinks[pfacenum]) {
-                for (patch = face_patches[pfacenum]; patch; patch = patch->next) {
-                    for (i = 0; i < 3; i++) {
-                        if (facemins[i] - patch->origin[i] > subdiv * 2)
-                            break;
-                        if (patch->origin[i] - facemaxs[i] > subdiv * 2)
-                            break;
-                    }
-                    if (i != 3)
-                        continue; // not needed for this face
-                    AddPointToTriangulation(patch, trian);
-                }
+            /*
+             * to allow experimenting, ambient and lightscale are not limited
+             *  to reasonable ranges.
+             */
+            if (ambient >= -255.0f && ambient <= 255.0f) {
+                // add fixed white ambient.
+                lb[0] += ambient;
+                lb[1] += ambient;
+                lb[2] += ambient;
             }
-            for (i = 0; i < trian->numpoints; i++)
-                memset(trian->edgematrix[i], 0, trian->numpoints * sizeof(trian->edgematrix[0][0]));
-            TriangulatePoints(trian);
-        }
-
-        //
-        // sample the triangulation
-        //
-
-        dest = &dlightdata_ptr[f->lightofs];
-
-        if (fl->numstyles > MAXLIGHTMAPS) {
-            fl->numstyles = MAXLIGHTMAPS;
-            //	printf ("face with too many lightstyles: (%f %f %f)\n",
-            //		face_patches[facenum]->origin[0],
-            //		face_patches[facenum]->origin[1],
-            //		face_patches[facenum]->origin[2]
-            //		);
-        }
-        for (st = 0; st < fl->numstyles; st++) {
-            last_valid    = NULL;
-            f->styles[st] = fl->stylenums[st];
-
-            for (j = 0; j < fl->numsamples; j++) {
-                VectorCopy((fl->samples[st] + j * 3), lb);
-                if (numbounce > 0 && st == 0) {
-                    vec3_t add;
-
-                    SampleTriangulation(fl->origins + j * 3, trian, &last_valid, add);
-                    VectorAdd(lb, add, lb);
-                }
-
-                /*
-                 * to allow experimenting, ambient and lightscale are not limited
-                 *  to reasonable ranges.
-                 */
-                if (ambient >= -255.0f && ambient <= 255.0f) {
-                    // add fixed white ambient.
-                    lb[0] += ambient;
-                    lb[1] += ambient;
-                    lb[2] += ambient;
-                }
-                if (lightscale > 0.0f) {
-                    // apply lightscale, scale down or up
-                    lb[0] *= lightscale;
-                    lb[1] *= lightscale;
-                    lb[2] *= lightscale;
-                }
-                // negative values not allowed
-                lb[0] = (lb[0] < 0.0f) ? 0.0f : lb[0];
-                lb[1] = (lb[1] < 0.0f) ? 0.0f : lb[1];
-                lb[2] = (lb[2] < 0.0f) ? 0.0f : lb[2];
-
-                /*			qprintf("{%f %f %f}:",lb[0],lb[1],lb[2]);*/
-
-                // determine max of R,G,B
-                max   = lb[0] > lb[1] ? lb[0] : lb[1];
-                max   = max > lb[2] ? max : lb[2];
-
-                if (max < 1.0f)
-                    max = 1.0f;
-
-                // note that maxlight based scaling is per-sample based on
-                //  highest value of R, G, and B
-                // adjust for -maxlight option
-                newmax = max;
-                if (max > maxlight) {
-                    newmax = maxlight;
-                    newmax /= max; // scaling factor 0.0..1.0
-                    // scale into 0.0..maxlight range
-                    lb[0] *= newmax;
-                    lb[1] *= newmax;
-                    lb[2] *= newmax;
-                }
-
-                // and output to 8:8:8 RGB
-                *dest++ = (byte)(lb[0] + 0.5);
-                *dest++ = (byte)(lb[1] + 0.5);
-                *dest++ = (byte)(lb[2] + 0.5);
+            if (lightscale > 0.0f) {
+                // apply lightscale, scale down or up
+                lb[0] *= lightscale;
+                lb[1] *= lightscale;
+                lb[2] *= lightscale;
             }
+            // negative values not allowed
+            lb[0] = (lb[0] < 0.0f) ? 0.0f : lb[0];
+            lb[1] = (lb[1] < 0.0f) ? 0.0f : lb[1];
+            lb[2] = (lb[2] < 0.0f) ? 0.0f : lb[2];
+
+            /*			qprintf("{%f %f %f}:",lb[0],lb[1],lb[2]);*/
+
+            // determine max of R,G,B
+            max = lb[0] > lb[1] ? lb[0] : lb[1];
+            max = max > lb[2] ? max : lb[2];
+
+            if (max < 1.0f)
+                max = 1.0f;
+
+            // note that maxlight based scaling is per-sample based on
+            //  highest value of R, G, and B
+            // adjust for -maxlight option
+            newmax = max;
+            if (max > maxlight) {
+                newmax = maxlight;
+                newmax /= max; // scaling factor 0.0..1.0
+                // scale into 0.0..maxlight range
+                lb[0] *= newmax;
+                lb[1] *= newmax;
+                lb[2] *= newmax;
+            }
+
+            // and output to 8:8:8 RGB
+            *dest++ = (byte)(lb[0] + 0.5);
+            *dest++ = (byte)(lb[1] + 0.5);
+            *dest++ = (byte)(lb[2] + 0.5);
         }
     }
 
@@ -2645,258 +2167,130 @@ void FinalLightFaceSH(int32_t facenum) {
     }
     ThreadUnlock();
 
-    if (use_qbsp) {
-        dface_tx *f;
-        f = &dfacesX[facenum];
+    dface_tx* f;
+    f = &dfacesX[facenum];
 
-        if (texinfo[f->texinfo].flags & (SURF_WARP | SURF_SKY))
-            return; // non-lit texture
+    if (texinfo[f->texinfo].flags & (SURF_WARP | SURF_SKY))
+        return; // non-lit texture
 
-        f->lightofs  = i;
-        f->styles[0] = 0;
-        f->styles[1] = f->styles[2] = f->styles[3] = 0xff;
+    f->lightofs = i;
+    f->styles[0] = 0;
+    f->styles[1] = f->styles[2] = f->styles[3] = 0xff;
 
-        //
-        // set up the triangulation
-        //
-        if (numbounce > 0) {
-            ClearBounds(facemins, facemaxs);
-            for (i = 0; i < f->numedges; i++) {
-                int32_t ednum;
+    //
+    // set up the triangulation
+    //
+    if (numbounce > 0) {
+        ClearBounds(facemins, facemaxs);
+        for (i = 0; i < f->numedges; i++) {
+            int32_t ednum;
 
-                ednum = dsurfedges[f->firstedge + i];
-                if (ednum >= 0)
-                    AddPointToBounds(dvertexes[dedgesX[ednum].v[0]].point,
-                                     facemins, facemaxs);
-                else
-                    AddPointToBounds(dvertexes[dedgesX[-ednum].v[1]].point,
-                                     facemins, facemaxs);
-            }
-
-            trian = AllocTriangulation(&dplanes[f->planenum]);
-
-            // for all faces on the plane, add the nearby patches
-            // to the triangulation
-            for (pfacenum = planelinks[f->side][f->planenum]; pfacenum; pfacenum = facelinks[pfacenum]) {
-                for (patch = face_patches[pfacenum]; patch; patch = patch->next) {
-                    for (i = 0; i < 3; i++) {
-                        if (facemins[i] - patch->origin[i] > subdiv * 2)
-                            break;
-                        if (patch->origin[i] - facemaxs[i] > subdiv * 2)
-                            break;
-                    }
-                    if (i != 3)
-                        continue; // not needed for this face
-                    AddPointToTriangulation(patch, trian);
-                }
-            }
-            for (i = 0; i < trian->numpoints; i++)
-                memset(trian->edgematrix[i], 0, trian->numpoints * sizeof(trian->edgematrix[0][0]));
-            TriangulatePoints(trian);
+            ednum = dsurfedges[f->firstedge + i];
+            if (ednum >= 0)
+                AddPointToBounds(dvertexes[dedgesX[ednum].v[0]].point,
+                    facemins, facemaxs);
+            else
+                AddPointToBounds(dvertexes[dedgesX[-ednum].v[1]].point,
+                    facemins, facemaxs);
         }
 
-        //
-        // sample the triangulation
-        //
+        trian = AllocTriangulation(&dplanes[f->planenum]);
 
-        dest = &dlightdata_ptr[f->lightofs];
-
-        if (fl->numstyles > MAXLIGHTMAPS) {
-            fl->numstyles = MAXLIGHTMAPS;
-            //	printf ("face with too many lightstyles: (%f %f %f)\n",
-            //		face_patches[facenum]->origin[0],
-            //		face_patches[facenum]->origin[1],
-            //		face_patches[facenum]->origin[2]
-            //		);
-        }
-        for (st = 0; st < fl->numstyles; st++) {
-            last_valid    = NULL;
-            f->styles[st] = fl->stylenums[st];
-
-            for (j = 0; j < fl->numsamples; j++) {
-                VectorCopy((fl->samples[st] + j * 3), lb);
-                if (numbounce > 0 && st == 0) {
-                    vec3_t add;
-
-                    SampleTriangulation(fl->origins + j * 3, trian, &last_valid, add);
-                    VectorAdd(lb, add, lb);
+        // for all faces on the plane, add the nearby patches
+        // to the triangulation
+        for (pfacenum = planelinks[f->side][f->planenum]; pfacenum; pfacenum = facelinks[pfacenum]) {
+            for (patch = face_patches[pfacenum]; patch; patch = patch->next) {
+                for (i = 0; i < 3; i++) {
+                    if (facemins[i] - patch->origin[i] > subdiv * 2)
+                        break;
+                    if (patch->origin[i] - facemaxs[i] > subdiv * 2)
+                        break;
                 }
-
-                /*
-                 * to allow experimenting, ambient and lightscale are not limited
-                 *  to reasonable ranges.
-                 */
-                if (ambient >= -255.0f && ambient <= 255.0f) {
-                    // add fixed white ambient.
-                    lb[0] += ambient;
-                    lb[1] += ambient;
-                    lb[2] += ambient;
-                }
-                if (lightscale > 0.0f) {
-                    // apply lightscale, scale down or up
-                    lb[0] *= lightscale;
-                    lb[1] *= lightscale;
-                    lb[2] *= lightscale;
-                }
-                // negative values not allowed
-                lb[0] = (lb[0] < 0.0f) ? 0.0f : lb[0];
-                lb[1] = (lb[1] < 0.0f) ? 0.0f : lb[1];
-                lb[2] = (lb[2] < 0.0f) ? 0.0f : lb[2];
-
-                /*			qprintf("{%f %f %f}:",lb[0],lb[1],lb[2]);*/
-
-                // determine max of R,G,B
-                max   = lb[0] > lb[1] ? lb[0] : lb[1];
-                max   = max > lb[2] ? max : lb[2];
-
-                if (max < 1.0f)
-                    max = 1.0f;
-
-                // note that maxlight based scaling is per-sample based on
-                //  highest value of R, G, and B
-                // adjust for -maxlight option
-                newmax = max;
-                if (max > maxlight) {
-                    newmax = maxlight;
-                    newmax /= max; // scaling factor 0.0..1.0
-                    // scale into 0.0..maxlight range
-                    lb[0] *= newmax;
-                    lb[1] *= newmax;
-                    lb[2] *= newmax;
-                }
-
-                // and output to 8:8:8 RGB
-                *dest++ = (byte)(lb[0] + 0.5);
-                *dest++ = (byte)(lb[1] + 0.5);
-                *dest++ = (byte)(lb[2] + 0.5);
+                if (i != 3)
+                    continue; // not needed for this face
+                AddPointToTriangulation(patch, trian);
             }
         }
-    } else // ibsp
-    {
-        dface_t *f;
-        f = &dfaces[facenum];
+        for (i = 0; i < trian->numpoints; i++)
+            memset(trian->edgematrix[i], 0, trian->numpoints * sizeof(trian->edgematrix[0][0]));
+        TriangulatePoints(trian);
+    }
 
-        if (texinfo[f->texinfo].flags & (SURF_WARP | SURF_SKY))
-            return; // non-lit texture
+    //
+    // sample the triangulation
+    //
 
-        f->lightofs  = i;
-        f->styles[0] = 0;
-        f->styles[1] = f->styles[2] = f->styles[3] = 0xff;
+    dest = &dlightdata_ptr[f->lightofs];
 
-        //
-        // set up the triangulation
-        //
-        if (numbounce > 0) {
-            ClearBounds(facemins, facemaxs);
-            for (i = 0; i < f->numedges; i++) {
-                int32_t ednum;
+    if (fl->numstyles > MAXLIGHTMAPS) {
+        fl->numstyles = MAXLIGHTMAPS;
+        //	printf ("face with too many lightstyles: (%f %f %f)\n",
+        //		face_patches[facenum]->origin[0],
+        //		face_patches[facenum]->origin[1],
+        //		face_patches[facenum]->origin[2]
+        //		);
+    }
 
-                ednum = dsurfedges[f->firstedge + i];
-                if (ednum >= 0)
-                    AddPointToBounds(dvertexes[dedges[ednum].v[0]].point,
-                                     facemins, facemaxs);
-                else
-                    AddPointToBounds(dvertexes[dedges[-ednum].v[1]].point,
-                                     facemins, facemaxs);
+    for (st = 0; st < fl->numstyles; st++) {
+        last_valid = NULL;
+        f->styles[st] = fl->stylenums[st];
+
+        for (j = 0; j < fl->numsamples; j++) {
+            VectorCopy((fl->samples[st] + j * 3), lb);
+            if (numbounce > 0 && st == 0) {
+                vec3_t add;
+
+                SampleTriangulation(fl->origins + j * 3, trian, &last_valid, add);
+                VectorAdd(lb, add, lb);
             }
 
-            trian = AllocTriangulation(&dplanes[f->planenum]);
-
-            // for all faces on the plane, add the nearby patches
-            // to the triangulation
-            for (pfacenum = planelinks[f->side][f->planenum]; pfacenum; pfacenum = facelinks[pfacenum]) {
-                for (patch = face_patches[pfacenum]; patch; patch = patch->next) {
-                    for (i = 0; i < 3; i++) {
-                        if (facemins[i] - patch->origin[i] > subdiv * 2)
-                            break;
-                        if (patch->origin[i] - facemaxs[i] > subdiv * 2)
-                            break;
-                    }
-                    if (i != 3)
-                        continue; // not needed for this face
-                    AddPointToTriangulation(patch, trian);
-                }
+            /*
+             * to allow experimenting, ambient and lightscale are not limited
+             *  to reasonable ranges.
+             */
+            if (ambient >= -255.0f && ambient <= 255.0f) {
+                // add fixed white ambient.
+                lb[0] += ambient;
+                lb[1] += ambient;
+                lb[2] += ambient;
             }
-            for (i = 0; i < trian->numpoints; i++)
-                memset(trian->edgematrix[i], 0, trian->numpoints * sizeof(trian->edgematrix[0][0]));
-            TriangulatePoints(trian);
-        }
-
-        //
-        // sample the triangulation
-        //
-
-        dest = &dlightdata_ptr[f->lightofs];
-
-        if (fl->numstyles > MAXLIGHTMAPS) {
-            fl->numstyles = MAXLIGHTMAPS;
-            //	printf ("face with too many lightstyles: (%f %f %f)\n",
-            //		face_patches[facenum]->origin[0],
-            //		face_patches[facenum]->origin[1],
-            //		face_patches[facenum]->origin[2]
-            //		);
-        }
-        for (st = 0; st < fl->numstyles; st++) {
-            last_valid    = NULL;
-            f->styles[st] = fl->stylenums[st];
-
-            for (j = 0; j < fl->numsamples; j++) {
-                VectorCopy((fl->samples[st] + j * 3), lb);
-                if (numbounce > 0 && st == 0) {
-                    vec3_t add;
-
-                    SampleTriangulation(fl->origins + j * 3, trian, &last_valid, add);
-                    VectorAdd(lb, add, lb);
-                }
-
-                /*
-                 * to allow experimenting, ambient and lightscale are not limited
-                 *  to reasonable ranges.
-                 */
-                if (ambient >= -255.0f && ambient <= 255.0f) {
-                    // add fixed white ambient.
-                    lb[0] += ambient;
-                    lb[1] += ambient;
-                    lb[2] += ambient;
-                }
-                if (lightscale > 0.0f) {
-                    // apply lightscale, scale down or up
-                    lb[0] *= lightscale;
-                    lb[1] *= lightscale;
-                    lb[2] *= lightscale;
-                }
-                // negative values not allowed
-                lb[0] = (lb[0] < 0.0f) ? 0.0f : lb[0];
-                lb[1] = (lb[1] < 0.0f) ? 0.0f : lb[1];
-                lb[2] = (lb[2] < 0.0f) ? 0.0f : lb[2];
-
-                /*			qprintf("{%f %f %f}:",lb[0],lb[1],lb[2]);*/
-
-                // determine max of R,G,B
-                max   = lb[0] > lb[1] ? lb[0] : lb[1];
-                max   = max > lb[2] ? max : lb[2];
-
-                if (max < 1.0f)
-                    max = 1.0f;
-
-                // note that maxlight based scaling is per-sample based on
-                //  highest value of R, G, and B
-                // adjust for -maxlight option
-                newmax = max;
-                if (max > maxlight) {
-                    newmax = maxlight;
-                    newmax /= max; // scaling factor 0.0..1.0
-                    // scale into 0.0..maxlight range
-                    lb[0] *= newmax;
-                    lb[1] *= newmax;
-                    lb[2] *= newmax;
-                }
-
-                // and output to 8:8:8 RGB
-                *dest++ = (byte)(lb[0] + 0.5);
-                *dest++ = (byte)(lb[1] + 0.5);
-                *dest++ = (byte)(lb[2] + 0.5);
+            if (lightscale > 0.0f) {
+                // apply lightscale, scale down or up
+                lb[0] *= lightscale;
+                lb[1] *= lightscale;
+                lb[2] *= lightscale;
             }
+            // negative values not allowed
+            lb[0] = (lb[0] < 0.0f) ? 0.0f : lb[0];
+            lb[1] = (lb[1] < 0.0f) ? 0.0f : lb[1];
+            lb[2] = (lb[2] < 0.0f) ? 0.0f : lb[2];
+
+            /*			qprintf("{%f %f %f}:",lb[0],lb[1],lb[2]);*/
+
+            // determine max of R,G,B
+            max = lb[0] > lb[1] ? lb[0] : lb[1];
+            max = max > lb[2] ? max : lb[2];
+
+            if (max < 1.0f)
+                max = 1.0f;
+
+            // note that maxlight based scaling is per-sample based on
+            //  highest value of R, G, and B
+            // adjust for -maxlight option
+            newmax = max;
+            if (max > maxlight) {
+                newmax = maxlight;
+                newmax /= max; // scaling factor 0.0..1.0
+                // scale into 0.0..maxlight range
+                lb[0] *= newmax;
+                lb[1] *= newmax;
+                lb[2] *= newmax;
+            }
+
+            // and output to 8:8:8 RGB
+            *dest++ = (byte)(lb[0] + 0.5);
+            *dest++ = (byte)(lb[1] + 0.5);
+            *dest++ = (byte)(lb[2] + 0.5);
         }
     }
 

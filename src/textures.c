@@ -133,13 +133,8 @@ void TextureAxisFromPlane(plane_t *pln, vec3_t xv, vec3_t yv) {
 
 static inline void CheckTexinfoCount() // mxd
 {
-    if (use_qbsp) {
-        if (numtexinfo == MAX_MAP_TEXINFO_QBSP)
-            printf("WARNING: texinfo count exceeds qbsp limit (%i).\n", MAX_MAP_TEXINFO_QBSP);
-    } else if (numtexinfo == DEFAULT_MAP_TEXINFO)
-        printf("WARNING: texinfo count exceeds vanilla limit (%i).\n", DEFAULT_MAP_TEXINFO);
-    else if (numtexinfo >= MAX_MAP_TEXINFO)
-        Error("ERROR: texinfo count exceeds extended limit (%i).\n", MAX_MAP_TEXINFO);
+    if (numtexinfo == MAX_MAP_TEXINFO_QBSP)
+        printf("WARNING: texinfo count exceeds ZBSP limit (%i).\n", MAX_MAP_TEXINFO_QBSP);
 }
 
 qboolean TexinfosMatch(texinfo_t t1, texinfo_t t2) // mxd

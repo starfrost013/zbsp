@@ -140,12 +140,8 @@ int32_t GetVertexnum(vec3_t in) {
         }
     }
 
-    // emit a vertex
-    if (use_qbsp) {
-        if (numvertexes == MAX_MAP_VERTS_QBSP)
-            Error("MAX_MAP_VERTS_QBSP");
-    } else if (numvertexes == MAX_MAP_VERTS)
-        Error("MAX_MAP_VERTS");
+    if (numvertexes == MAX_MAP_VERTS_QBSP)
+        Error("MAX_MAP_VERTS_QBSP exceeded");
 
     dvertexes[numvertexes].point[0] = vert[0];
     dvertexes[numvertexes].point[1] = vert[1];
@@ -226,11 +222,9 @@ void EmitFaceVertexes(node_t *node, face_t *f) {
     for (i = 0; i < w->numpoints; i++) {
         if (noweld) {
             // make every point unique
-            if (use_qbsp) {
-                if (numvertexes == MAX_MAP_VERTS_QBSP)
-                    Error("MAX_MAP_VERTS_QBSP");
-            } else if (numvertexes == MAX_MAP_VERTS)
-                Error("MAX_MAP_VERTS");
+            if (numvertexes == MAX_MAP_VERTS_QBSP)
+                Error("MAX_MAP_VERTS_QBSP");
+
             superverts[i] = numvertexes;
             VectorCopy(w->p[i], dvertexes[numvertexes].point);
             numvertexes++;
@@ -518,47 +512,25 @@ int32_t GetEdge(int32_t v1, int32_t v2, face_t *f) {
     c_tryedges++;
 
     if (!noshare) {
-        if (use_qbsp) {
-            dedge_tx *edge;
-            for (i = firstmodeledge; i < numedges; i++) {
-                edge = &dedgesX[i];
-                if (v1 == edge->v[1] && v2 == edge->v[0] && edgefaces[i][0]->contents == f->contents) {
-                    if (edgefaces[i][1])
-                        //				printf ("WARNING: multiple backward edge\n");
-                        continue;
-                    edgefaces[i][1] = f;
-                    return -i;
-                }
+        dedge_tx* edge;
+        for (i = firstmodeledge; i < numedges; i++) {
+            edge = &dedgesX[i];
+            if (v1 == edge->v[1] && v2 == edge->v[0] && edgefaces[i][0]->contents == f->contents) {
+                if (edgefaces[i][1])
+                    //				printf ("WARNING: multiple backward edge\n");
+                    continue;
+                edgefaces[i][1] = f;
+                return -i;
             }
-            // emit an edge
-            if (numedges >= MAX_MAP_EDGES_QBSP)
-                Error("numedges == MAX_MAP_EDGES_QBSP");
-            edge = &dedgesX[numedges];
-            numedges++;
-            edge->v[0] = v1;
-            edge->v[1] = v2;
-            edgefaces[numedges - 1][0] = f;
-        } else {
-            dedge_t *edge;
-            for (i = firstmodeledge; i < numedges; i++) {
-                edge = &dedges[i];
-                if (v1 == edge->v[1] && v2 == edge->v[0] && edgefaces[i][0]->contents == f->contents) {
-                    if (edgefaces[i][1])
-                        //				printf ("WARNING: multiple backward edge\n");
-                        continue;
-                    edgefaces[i][1] = f;
-                    return -i;
-                }
-            }
-            // emit an edge
-            if (numedges >= MAX_MAP_EDGES)
-                Error("numedges == MAX_MAP_EDGES");
-            edge = &dedges[numedges];
-            numedges++;
-            edge->v[0] = v1;
-            edge->v[1] = v2;
-            edgefaces[numedges - 1][0] = f;
         }
+        // emit an edge
+        if (numedges >= MAX_MAP_EDGES_QBSP)
+            Error("numedges == MAX_MAP_EDGES_QBSP");
+        edge = &dedgesX[numedges];
+        numedges++;
+        edge->v[0] = v1;
+        edge->v[1] = v2;
+        edgefaces[numedges - 1][0] = f;
     }
     return numedges - 1;
 }

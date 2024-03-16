@@ -48,41 +48,22 @@ void MakeTnode(int32_t nodenum) {
 
     t = tnode_p++;
 
-    if (use_qbsp) {
-        dnode_tx *node;
-        node    = dnodesX + nodenum;
-        plane   = dplanes + node->planenum;
+    dnode_tx* node;
+    node = dnodesX + nodenum;
+    plane = dplanes + node->planenum;
 
-        t->type = plane->type;
-        VectorCopy(plane->normal, t->normal);
-        t->dist = plane->dist;
+    t->type = plane->type;
+    VectorCopy(plane->normal, t->normal);
+    t->dist = plane->dist;
 
-        for (i = 0; i < 2; i++) {
-            if (node->children[i] < 0) {
-                t->children[i]      = (dleafsX[-node->children[i] - 1].contents & tnode_mask) | (1 << 31);
-                t->children_leaf[i] = -node->children[i] - 1;
-            } else {
-                t->children[i] = tnode_p - tnodes;
-                MakeTnode(node->children[i]);
-            }
+    for (i = 0; i < 2; i++) {
+        if (node->children[i] < 0) {
+            t->children[i] = (dleafsX[-node->children[i] - 1].contents & tnode_mask) | (1 << 31);
+            t->children_leaf[i] = -node->children[i] - 1;
         }
-    } else {
-        dnode_t *node;
-        node    = dnodes + nodenum;
-        plane   = dplanes + node->planenum;
-
-        t->type = plane->type;
-        VectorCopy(plane->normal, t->normal);
-        t->dist = plane->dist;
-
-        for (i = 0; i < 2; i++) {
-            if (node->children[i] < 0) {
-                t->children[i]      = (dleafs[-node->children[i] - 1].contents & tnode_mask) | (1 << 31);
-                t->children_leaf[i] = -node->children[i] - 1;
-            } else {
-                t->children[i] = tnode_p - tnodes;
-                MakeTnode(node->children[i]);
-            }
+        else {
+            t->children[i] = tnode_p - tnodes;
+            MakeTnode(node->children[i]);
         }
     }
 }
@@ -122,30 +103,17 @@ int32_t PointInNodenum(vec3_t point) {
     dplane_t *plane;
 
     nodenum = 0;
-    if (use_qbsp) {
-        dnode_tx *node;
-        while (nodenum >= 0) {
-            node       = &dnodesX[nodenum];
-            plane      = &dplanes[node->planenum];
-            dist       = DotProduct(point, plane->normal) - plane->dist;
-            oldnodenum = nodenum;
-            if (dist > 0)
-                nodenum = node->children[0];
-            else
-                nodenum = node->children[1];
-        }
-    } else {
-        dnode_t *node;
-        while (nodenum >= 0) {
-            node       = &dnodes[nodenum];
-            plane      = &dplanes[node->planenum];
-            dist       = DotProduct(point, plane->normal) - plane->dist;
-            oldnodenum = nodenum;
-            if (dist > 0)
-                nodenum = node->children[0];
-            else
-                nodenum = node->children[1];
-        }
+
+    dnode_tx* node;
+    while (nodenum >= 0) {
+        node = &dnodesX[nodenum];
+        plane = &dplanes[node->planenum];
+        dist = DotProduct(point, plane->normal) - plane->dist;
+        oldnodenum = nodenum;
+        if (dist > 0)
+            nodenum = node->children[0];
+        else
+            nodenum = node->children[1];
     }
 
     return oldnodenum;

@@ -115,8 +115,6 @@ extern int32_t nodeparents[MAX_MAP_NODES_QBSP];
 
 extern float lightscale;
 
-extern qboolean use_qbsp;
-
 void MakeShadowSplits(void);
 
 //==============================================

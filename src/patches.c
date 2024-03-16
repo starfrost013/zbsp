@@ -323,125 +323,65 @@ void MakePatchForFace(int32_t fn, winding_t *w) {
     totalarea += area;
 
     patch = &patches[num_patches];
-    if (use_qbsp) {
-        if (num_patches == MAX_PATCHES_QBSP)
-            Error("Exceeded MAX_PATCHES_QBSP %i", MAX_PATCHES_QBSP);
-    } else if (num_patches == MAX_PATCHES)
-        Error("Exceeded MAX_PATCHES %i", MAX_PATCHES);
+    if (num_patches == MAX_PATCHES_QBSP)
+        Error("Exceeded MAX_PATCHES_QBSP %i", MAX_PATCHES_QBSP);
+
+
     patch->next      = face_patches[fn];
     face_patches[fn] = patch;
 
     patch->winding   = w;
 
-    if (use_qbsp) {
-        dface_tx *f;
-        dleaf_tx *leaf;
+    dface_tx* f;
+    dleaf_tx* leaf;
 
-        f = &dfacesX[fn];
-        if (f->side)
-            patch->plane = &backplanes[f->planenum];
-        else
-            patch->plane = &dplanes[f->planenum];
-        if (face_offset[fn][0] || face_offset[fn][1] || face_offset[fn][2]) {
-            // origin offset faces must create new planes
-            if (use_qbsp) {
-                if (numplanes + fakeplanes >= MAX_MAP_PLANES_QBSP)
-                    Error("numplanes + fakeplanes >= MAX_MAP_PLANES_QBSP");
-            } else if (numplanes + fakeplanes >= MAX_MAP_PLANES)
-                Error("numplanes + fakeplanes >= MAX_MAP_PLANES");
+    f = &dfacesX[fn];
+    if (f->side)
+        patch->plane = &backplanes[f->planenum];
+    else
+        patch->plane = &dplanes[f->planenum];
+    if (face_offset[fn][0] || face_offset[fn][1] || face_offset[fn][2]) {
+        // origin offset faces must create new planes
+        if (numplanes + fakeplanes >= MAX_MAP_PLANES_QBSP)
+            Error("numplanes + fakeplanes >= MAX_MAP_PLANES_QBSP");
+        pl = &dplanes[numplanes + fakeplanes];
+        fakeplanes++;
 
-            pl = &dplanes[numplanes + fakeplanes];
-            fakeplanes++;
-
-            *pl = *(patch->plane);
-            pl->dist += DotProduct(face_offset[fn], pl->normal);
-            patch->plane = pl;
-        }
-
-        WindingCenter(w, patch->origin);
-        VectorAdd(patch->origin, patch->plane->normal, patch->origin);
-        leaf           = RadPointInLeafX(patch->origin);
-        patch->cluster = leaf->cluster;
-
-        if (patch->cluster == -1) {
-            // qprintf ("patch->cluster == -1\n");
-            ++cluster_neg_one;
-        }
-
-        patch->faceNumber = fn; // qb: for patch sorting
-        patch->area       = area;
-        if (patch->area <= 1)
-            patch->area = 1;
-        patch->sky = IsSkyX(f);
-
-        VectorCopy(texture_reflectivity[f->texinfo], patch->reflectivity);
-
-        // non-bmodel patches can emit light
-        if (fn < dmodels[0].numfaces) {
-            BaseLightForFaceX(f, patch->baselight);
-
-            ColorNormalize(patch->reflectivity, color);
-
-            for (i = 0; i < 3; i++)
-                patch->baselight[i] *= color[i];
-
-            VectorCopy(patch->baselight, patch->totallight);
-        }
-    } else {
-        dface_t *f;
-        dleaf_t *leaf;
-
-        f = &dfaces[fn];
-        if (f->side)
-            patch->plane = &backplanes[f->planenum];
-        else
-            patch->plane = &dplanes[f->planenum];
-        if (face_offset[fn][0] || face_offset[fn][1] || face_offset[fn][2]) {
-            // origin offset faces must create new planes
-            if (use_qbsp) {
-                if (numplanes + fakeplanes >= MAX_MAP_PLANES_QBSP)
-                    Error("numplanes + fakeplanes >= MAX_MAP_PLANES_QBSP");
-            } else if (numplanes + fakeplanes >= MAX_MAP_PLANES)
-                Error("numplanes + fakeplanes >= MAX_MAP_PLANES");
-
-            pl = &dplanes[numplanes + fakeplanes];
-            fakeplanes++;
-
-            *pl = *(patch->plane);
-            pl->dist += DotProduct(face_offset[fn], pl->normal);
-            patch->plane = pl;
-        }
-
-        WindingCenter(w, patch->origin);
-        VectorAdd(patch->origin, patch->plane->normal, patch->origin);
-        leaf           = RadPointInLeaf(patch->origin);
-        patch->cluster = leaf->cluster;
-
-        if (patch->cluster == -1) {
-            // qprintf ("patch->cluster == -1\n");
-            ++cluster_neg_one;
-        }
-
-        patch->faceNumber = fn; // qb: for patch sorting
-        patch->area       = area;
-        if (patch->area <= 1)
-            patch->area = 1;
-        patch->sky = IsSkyI(f);
-
-        VectorCopy(texture_reflectivity[f->texinfo], patch->reflectivity);
-
-        // non-bmodel patches can emit light
-        if (fn < dmodels[0].numfaces) {
-            BaseLightForFaceI(f, patch->baselight);
-
-            ColorNormalize(patch->reflectivity, color);
-
-            for (i = 0; i < 3; i++)
-                patch->baselight[i] *= color[i];
-
-            VectorCopy(patch->baselight, patch->totallight);
-        }
+        *pl = *(patch->plane);
+        pl->dist += DotProduct(face_offset[fn], pl->normal);
+        patch->plane = pl;
     }
+
+    WindingCenter(w, patch->origin);
+    VectorAdd(patch->origin, patch->plane->normal, patch->origin);
+    leaf = RadPointInLeafX(patch->origin);
+    patch->cluster = leaf->cluster;
+
+    if (patch->cluster == -1) {
+        // qprintf ("patch->cluster == -1\n");
+        ++cluster_neg_one;
+    }
+
+    patch->faceNumber = fn; // qb: for patch sorting
+    patch->area = area;
+    if (patch->area <= 1)
+        patch->area = 1;
+    patch->sky = IsSkyX(f);
+
+    VectorCopy(texture_reflectivity[f->texinfo], patch->reflectivity);
+
+    // non-bmodel patches can emit light
+    if (fn < dmodels[0].numfaces) {
+        BaseLightForFaceX(f, patch->baselight);
+
+        ColorNormalize(patch->reflectivity, color);
+
+        for (i = 0; i < 3; i++)
+            patch->baselight[i] *= color[i];
+
+        VectorCopy(patch->baselight, patch->totallight);
+    }
+
     num_patches++;
 }
 
@@ -488,15 +428,9 @@ void MakePatches(void) {
             fn              = mod->firstface + j;
             face_entity[fn] = ent;
             VectorCopy(origin, face_offset[fn]);
-            if (use_qbsp) {
-                dface_tx *f;
-                f = &dfacesX[fn];
-                w = WindingFromFaceX(f);
-            } else {
-                dface_t *f;
-                f = &dfaces[fn];
-                w = WindingFromFace(f);
-            }
+            dface_tx* f;
+            f = &dfacesX[fn];
+            w = WindingFromFaceX(f);
 
             for (k = 0; k < w->numpoints; k++) {
                 VectorAdd(w->p[k], origin, w->p[k]);
@@ -531,37 +465,20 @@ void FinishSplit(patch_t *patch, patch_t *newp) {
     if (newp->area <= 1)
         newp->area = 1;
 
-    if (use_qbsp) {
-        dleaf_tx *leaf;
-        WindingCenter(patch->winding, patch->origin);
-        VectorAdd(patch->origin, patch->plane->normal, patch->origin);
-        leaf           = RadPointInLeafX(patch->origin);
-        patch->cluster = leaf->cluster;
-        if (patch->cluster == -1)
-            qprintf("patch->cluster == -1\n");
+    dleaf_tx* leaf;
+    WindingCenter(patch->winding, patch->origin);
+    VectorAdd(patch->origin, patch->plane->normal, patch->origin);
+    leaf = RadPointInLeafX(patch->origin);
+    patch->cluster = leaf->cluster;
+    if (patch->cluster == -1)
+        qprintf("patch->cluster == -1\n");
 
-        WindingCenter(newp->winding, newp->origin);
-        VectorAdd(newp->origin, newp->plane->normal, newp->origin);
-        leaf          = RadPointInLeafX(newp->origin);
-        newp->cluster = leaf->cluster;
-        if (newp->cluster == -1)
-            qprintf("patch->cluster == -1\n");
-    } else {
-        dleaf_t *leaf;
-        WindingCenter(patch->winding, patch->origin);
-        VectorAdd(patch->origin, patch->plane->normal, patch->origin);
-        leaf           = RadPointInLeaf(patch->origin);
-        patch->cluster = leaf->cluster;
-        if (patch->cluster == -1)
-            qprintf("patch->cluster == -1\n");
-
-        WindingCenter(newp->winding, newp->origin);
-        VectorAdd(newp->origin, newp->plane->normal, newp->origin);
-        leaf          = RadPointInLeaf(newp->origin);
-        newp->cluster = leaf->cluster;
-        if (newp->cluster == -1)
-            qprintf("patch->cluster == -1\n");
-    }
+    WindingCenter(newp->winding, newp->origin);
+    VectorAdd(newp->origin, newp->plane->normal, newp->origin);
+    leaf = RadPointInLeafX(newp->origin);
+    newp->cluster = leaf->cluster;
+    if (newp->cluster == -1)
+        qprintf("patch->cluster == -1\n");
 }
 
 /*
@@ -609,14 +526,8 @@ void SubdividePatch(patch_t *patch) {
     dist     = (mins[i] + maxs[i]) * 0.5;
     ClipWindingEpsilon(w, split, dist, ON_EPSILON, &o1, &o2);
 
-    //
-    // create a new patch
-    //
-    if (use_qbsp) {
-        if (num_patches == MAX_PATCHES_QBSP)
-            Error("Exceeded MAX_PATCHES_QBSP %i", MAX_PATCHES_QBSP);
-    } else if (num_patches == MAX_PATCHES)
-        Error("Exceeded MAX_PATCHES %i", MAX_PATCHES);
+    if (num_patches == MAX_PATCHES_QBSP)
+        Error("Exceeded MAX_PATCHES_QBSP %i", MAX_PATCHES_QBSP);
 
     newp = &patches[num_patches];
     num_patches++;
@@ -669,11 +580,9 @@ void DicePatch(patch_t *patch) {
     //
     // create a new patch
     //
-    if (use_qbsp) {
-        if (num_patches == MAX_PATCHES_QBSP)
-            Error("Exceeded MAX_PATCHES_QBSP %i", MAX_PATCHES_QBSP);
-    } else if (num_patches == MAX_PATCHES)
-        Error("Exceeded MAX_PATCHES %i", MAX_PATCHES);
+    if (num_patches == MAX_PATCHES_QBSP)
+        Error("Exceeded MAX_PATCHES_QBSP %i", MAX_PATCHES_QBSP);
+
     newp = &patches[num_patches];
     num_patches++;
 

@@ -176,26 +176,14 @@ void MakeParents(int32_t nodenum, int32_t parent) {
 
     nodeparents[nodenum] = parent;
 
-    if (use_qbsp) {
-        dnode_tx *node;
-        node = &dnodesX[nodenum];
-        for (i = 0; i < 2; i++) {
-            j = node->children[i];
-            if (j < 0)
-                leafparents[-j - 1] = nodenum;
-            else
-                MakeParents(j, nodenum);
-        }
-    } else {
-        dnode_t *node;
-        node = &dnodes[nodenum];
-        for (i = 0; i < 2; i++) {
-            j = node->children[i];
-            if (j < 0)
-                leafparents[-j - 1] = nodenum;
-            else
-                MakeParents(j, nodenum);
-        }
+    dnode_tx* node;
+    node = &dnodesX[nodenum];
+    for (i = 0; i < 2; i++) {
+        j = node->children[i];
+        if (j < 0)
+            leafparents[-j - 1] = nodenum;
+        else
+            MakeParents(j, nodenum);
     }
 }
 
@@ -213,30 +201,17 @@ int32_t PointInLeafnum(vec3_t point) {
     dplane_t *plane;
 
     nodenum = 0;
-    if (use_qbsp) {
-        dnode_tx *node;
-        while (nodenum >= 0) {
-            node  = &dnodesX[nodenum];
-            plane = &dplanes[node->planenum];
-            dist  = DotProduct(point, plane->normal) - plane->dist;
-            if (dist > 0)
-                nodenum = node->children[0];
-            else
-                nodenum = node->children[1];
-        }
-    } else {
-        dnode_t *node;
-        while (nodenum >= 0) {
-            node  = &dnodes[nodenum];
-            plane = &dplanes[node->planenum];
-            dist  = DotProduct(point, plane->normal) - plane->dist;
-            if (dist > 0)
-                nodenum = node->children[0];
-            else
-                nodenum = node->children[1];
-        }
-    }
 
+    dnode_tx* node;
+    while (nodenum >= 0) {
+        node = &dnodesX[nodenum];
+        plane = &dplanes[node->planenum];
+        dist = DotProduct(point, plane->normal) - plane->dist;
+        if (dist > 0)
+            nodenum = node->children[0];
+        else
+            nodenum = node->children[1];
+    }
     return -nodenum - 1;
 }
 
@@ -260,19 +235,12 @@ qboolean PvsForOrigin(vec3_t org, byte *pvs) {
         return true;
     }
 
-    if (use_qbsp) {
-        dleaf_tx *leaf;
-        leaf = RadPointInLeafX(org);
-        if (leaf->cluster == -1)
-            return false; // in solid leaf
-        DecompressVis(dvisdata + dvis->bitofs[leaf->cluster][DVIS_PVS], pvs);
-    } else {
-        dleaf_t *leaf;
-        leaf = RadPointInLeaf(org);
-        if (leaf->cluster == -1)
-            return false; // in solid leaf
-        DecompressVis(dvisdata + dvis->bitofs[leaf->cluster][DVIS_PVS], pvs);
-    }
+    dleaf_tx* leaf;
+    leaf = RadPointInLeafX(org);
+    if (leaf->cluster == -1)
+        return false; // in solid leaf
+    DecompressVis(dvisdata + dvis->bitofs[leaf->cluster][DVIS_PVS], pvs);
+
     return true;
 }
 
@@ -388,42 +356,37 @@ re_test:
     if (headNode == nodeNum1)
         return headNode;
 
-    if (use_qbsp) {
-        dnode_tx *node;
-        child1 = (node = dnodesX + headNode)->children[1];
-        if (nodeNum2 < child1)
-            // Both nodeNum1 and nodeNum2 are less than child1.
-            // In this case, child0 is always a node, not a leaf, so we don't need
-            // to check to make sure.
-            headNode = node->children[0];
-        else if (nodeNum1 < child1)
-            // Child1 sits between nodeNum1 and nodeNum2.
-            // This means that headNode is the lowest node which contains both
-            // nodeNum1 and nodeNum2.
-            return headNode;
-        else if (child1 > 0)
-            // Both nodeNum1 and nodeNum2 are greater than child1.
-            // If child1 is a node, that means it contains both nodeNum1 and
-            // nodeNum2.
-            headNode = child1;
-        else
-            // Child1 is a leaf, therefore by process of elimination child0 must be
-            // a node and must contain boste nodeNum1 and nodeNum2.
-            headNode = node->children[0];
-        // goto instead of while(1) because it makes the CPU branch predict easier
-    } else {
-        dnode_t *node;
-        child1 = (node = dnodes + headNode)->children[1];
-        if (nodeNum2 < child1)
-            headNode = node->children[0];
-        else if (nodeNum1 < child1)
-            return headNode;
-        else if (child1 > 0)
-            headNode = child1;
-        else
-            headNode = node->children[0];
+    dnode_tx* node;
+    child1 = (node = dnodesX + headNode)->children[1];
+    if (nodeNum2 < child1)
+    {
+        // Both nodeNum1 and nodeNum2 are less than child1.
+        // In this case, child0 is always a node, not a leaf, so we don't need
+        // to check to make sure.
+        headNode = node->children[0];
+    }
+    else if (nodeNum1 < child1)
+    {
+        // Child1 sits between nodeNum1 and nodeNum2.
+        // This means that headNode is the lowest node which contains both
+        // nodeNum1 and nodeNum2.
+        return headNode;
+    }
+    else if (child1 > 0)
+    {
+        // Both nodeNum1 and nodeNum2 are greater than child1.
+        // If child1 is a node, that means it contains both nodeNum1 and
+        // nodeNum2.
+        headNode = child1;
+    }
+    else
+    {
+        // Child1 is a leaf, therefore by process of elimination child0 must be
+         // a node and must contain boste nodeNum1 and nodeNum2.
+        headNode = node->children[0];
     }
 
+    // goto instead of while(1) because it makes the CPU branch predict easier
     goto re_test;
 }
 
@@ -851,9 +814,8 @@ void RAD_ProcessArgument(const char *arg) {
     printf("reading %s\n", name);
     LoadBSPFile(name);
     dlightdata_ptr = dlightdata;
-    if (use_qbsp) {
-        maxdata = MAX_MAP_LIGHTING_QBSP;
-    }
+    maxdata = MAX_MAP_LIGHTING_QBSP;
+
     ParseEntities();
     CalcTextureReflectivity();
 
