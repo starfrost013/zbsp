@@ -30,17 +30,17 @@ every surface must be divided into at least two patches each axis
 
 */
 
-patch_t *face_patches[MAX_MAP_FACES_QBSP];
-entity_t *face_entity[MAX_MAP_FACES_QBSP];
-patch_t patches[MAX_PATCHES_QBSP];
+patch_t *face_patches[MAX_MAP_FACES];
+entity_t *face_entity[MAX_MAP_FACES];
+patch_t patches[MAX_PATCHES];
 unsigned num_patches;
 int32_t num_smoothing; // qb: number of phong hits
 
-vec3_t radiosity[MAX_PATCHES_QBSP];    // light leaving a patch
-vec3_t illumination[MAX_PATCHES_QBSP]; // light arriving at a patch
+vec3_t radiosity[MAX_PATCHES];    // light leaving a patch
+vec3_t illumination[MAX_PATCHES]; // light arriving at a patch
 
-vec3_t face_offset[MAX_MAP_FACES_QBSP]; // for rotating bmodels
-dplane_t backplanes[MAX_MAP_PLANES_QBSP];
+vec3_t face_offset[MAX_MAP_FACES]; // for rotating bmodels
+dplane_t backplanes[MAX_MAP_PLANES];
 
 extern char inbase[32], outbase[32];
 extern qboolean h2tex;
@@ -163,8 +163,8 @@ void MakeBackplanes(void) {
     }
 }
 
-int32_t leafparents[MAX_MAP_LEAFS_QBSP];
-int32_t nodeparents[MAX_MAP_NODES_QBSP];
+int32_t leafparents[MAX_MAP_LEAFS];
+int32_t nodeparents[MAX_MAP_NODES];
 
 /*
 =============
@@ -176,8 +176,8 @@ void MakeParents(int32_t nodenum, int32_t parent) {
 
     nodeparents[nodenum] = parent;
 
-    dnode_tx* node;
-    node = &dnodesX[nodenum];
+    dnode_t* node;
+    node = &dnodes[nodenum];
     for (i = 0; i < 2; i++) {
         j = node->children[i];
         if (j < 0)
@@ -202,9 +202,9 @@ int32_t PointInLeafnum(vec3_t point) {
 
     nodenum = 0;
 
-    dnode_tx* node;
+    dnode_t* node;
     while (nodenum >= 0) {
-        node = &dnodesX[nodenum];
+        node = &dnodes[nodenum];
         plane = &dplanes[node->planenum];
         dist = DotProduct(point, plane->normal) - plane->dist;
         if (dist > 0)
@@ -213,13 +213,6 @@ int32_t PointInLeafnum(vec3_t point) {
             nodenum = node->children[1];
     }
     return -nodenum - 1;
-}
-
-dleaf_tx *RadPointInLeafX(vec3_t point) {
-    int32_t num;
-
-    num = PointInLeafnum(point);
-    return &dleafsX[num];
 }
 
 dleaf_t *RadPointInLeaf(vec3_t point) {
@@ -235,8 +228,8 @@ qboolean PvsForOrigin(vec3_t org, byte *pvs) {
         return true;
     }
 
-    dleaf_tx* leaf;
-    leaf = RadPointInLeafX(org);
+    dleaf_t* leaf;
+    leaf = RadPointInLeaf(org);
     if (leaf->cluster == -1)
         return false; // in solid leaf
     DecompressVis(dvisdata + dvis->bitofs[leaf->cluster][DVIS_PVS], pvs);
@@ -260,7 +253,7 @@ static uint32_t total_mem;
 
 static int32_t first_transfer = 1;
 
-#define MAX_TRACE_BUF ((MAX_PATCHES_QBSP + 7) / 8)
+#define MAX_TRACE_BUF ((MAX_PATCHES + 7) / 8)
 
 #define TRACE_BYTE(x) (((x) + 7) >> 3)
 #define TRACE_BIT(x)  ((x)&0x1F)
@@ -356,8 +349,8 @@ re_test:
     if (headNode == nodeNum1)
         return headNode;
 
-    dnode_tx* node;
-    child1 = (node = dnodesX + headNode)->children[1];
+    dnode_t* node;
+    child1 = (node = dnodes + headNode)->children[1];
     if (nodeNum2 < child1)
     {
         // Both nodeNum1 and nodeNum2 are less than child1.
@@ -400,10 +393,10 @@ void MakeTransfers(int32_t i) {
     float total, inv_total;
     dplane_t plane;
     vec3_t origin;
-    float *transfers; //[MAX_PATCHES_QBSP];
+    float *transfers; //[MAX_PATCHES];
     int32_t s;
     int32_t itotal;
-    byte pvs[(MAX_MAP_LEAFS_QBSP + 7) / 8];
+    byte pvs[(MAX_MAP_LEAFS + 7) / 8];
     int32_t cluster;
     int32_t calc_trace, test_trace;
 
@@ -497,7 +490,7 @@ void MakeTransfers(int32_t i) {
     if (patch->numtransfers) {
         transfer_t *t;
 
-        if (patch->numtransfers < 0 || patch->numtransfers > MAX_PATCHES_QBSP)
+        if (patch->numtransfers < 0 || patch->numtransfers > MAX_PATCHES)
             Error("Weird numtransfers");
         s                = patch->numtransfers * sizeof(transfer_t);
         patch->transfers = malloc(s);
@@ -814,7 +807,7 @@ void RAD_ProcessArgument(const char *arg) {
     printf("reading %s\n", name);
     LoadBSPFile(name);
     dlightdata_ptr = dlightdata;
-    maxdata = MAX_MAP_LIGHTING_QBSP;
+    maxdata = MAX_MAP_LIGHTING;
 
     ParseEntities();
     CalcTextureReflectivity();

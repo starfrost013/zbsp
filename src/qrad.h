@@ -52,7 +52,6 @@ typedef struct directlight_s {
     float stopdot; // for spotlights
     dplane_t *plane;
     dleaf_t *leaf;
-    dleaf_tx *leafX;
     int32_t nodenum;
 } directlight_t;
 
@@ -66,7 +65,7 @@ typedef struct
 } transfer_t;
 
 #define MAX_PATCHES             65535
-#define MAX_PATCHES_QBSP        4000000 // qb: extended limit
+#define MAX_PATCHES        4000000 // qb: extended limit
 
 #define LMSTEP                  16
 
@@ -104,14 +103,14 @@ typedef struct patch_s {
     int32_t samples; // for averaging direct light
 } patch_t;
 
-extern patch_t *face_patches[MAX_MAP_FACES_QBSP];
-extern entity_t *face_entity[MAX_MAP_FACES_QBSP];
-extern vec3_t face_offset[MAX_MAP_FACES_QBSP]; // for rotating bmodels
-extern patch_t patches[MAX_PATCHES_QBSP];
+extern patch_t *face_patches[MAX_MAP_FACES];
+extern entity_t *face_entity[MAX_MAP_FACES];
+extern vec3_t face_offset[MAX_MAP_FACES]; // for rotating bmodels
+extern patch_t patches[MAX_PATCHES];
 extern unsigned num_patches;
 
-extern int32_t leafparents[MAX_MAP_LEAFS_QBSP];
-extern int32_t nodeparents[MAX_MAP_NODES_QBSP];
+extern int32_t leafparents[MAX_MAP_LEAFS];
+extern int32_t nodeparents[MAX_MAP_NODES];
 
 extern float lightscale;
 
@@ -136,9 +135,9 @@ extern int32_t numbounce;
 extern qboolean noblock;
 extern qboolean noedgefix;
 
-extern directlight_t *directlights[MAX_MAP_LEAFS_QBSP];
+extern directlight_t *directlights[MAX_MAP_LEAFS];
 
-extern byte nodehit[MAX_MAP_NODES_QBSP];
+extern byte nodehit[MAX_MAP_NODES];
 
 void BuildLightmaps(void);
 
@@ -155,9 +154,8 @@ int32_t TestLine_r(int32_t node, vec3_t start, vec3_t stop);
 void CreateDirectLights(void);
 
 dleaf_t *RadPointInLeaf(vec3_t point);
-dleaf_tx *RadPointInLeafX(vec3_t point);
 
-extern dplane_t backplanes[MAX_MAP_PLANES_QBSP];
+extern dplane_t backplanes[MAX_MAP_PLANES];
 extern int32_t fakeplanes; // created planes for origin offset
 extern int32_t maxdata;
 
@@ -186,6 +184,6 @@ extern void SubdividePatches(void);
 extern void PairEdges(void);
 extern void CalcTextureReflectivity(void);
 extern byte *dlightdata_ptr;
-extern byte dlightdata_raw[MAX_MAP_LIGHTING_QBSP];
+extern byte dlightdata_raw[MAX_MAP_LIGHTING];
 
 extern float sunradscale;

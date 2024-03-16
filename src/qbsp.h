@@ -148,15 +148,15 @@ typedef struct
 
 extern int32_t entity_num;
 
-extern plane_t mapplanes[MAX_MAP_PLANES_QBSP];
+extern plane_t mapplanes[MAX_MAP_PLANES];
 extern int32_t nummapplanes;
 
 extern int32_t nummapbrushes;
-extern mapbrush_t mapbrushes[MAX_MAP_BRUSHES_QBSP];
+extern mapbrush_t mapbrushes[MAX_MAP_BRUSHES];
 
 extern vec3_t map_mins, map_maxs;
 
-#define MAX_MAP_SIDES (MAX_MAP_BRUSHSIDES_QBSP)
+#define MAX_MAP_SIDES (MAX_MAP_BRUSHSIDES)
 
 extern int32_t nummapbrushsides;
 extern side_t brushsides[MAX_MAP_SIDES];

@@ -46,7 +46,7 @@ qboolean nosort;
 
 int32_t totalvis;
 
-portal_t *sorted_portals[MAX_MAP_PORTALS_QBSP * 2];
+portal_t *sorted_portals[MAX_MAP_PORTALS * 2];
 
 extern char inbase[32];
 extern char outbase[32];
@@ -156,9 +156,9 @@ Merges the portal visibility for a leaf
 */
 void ClusterMerge(int32_t leafnum) {
     leaf_t *leaf;
-    byte portalvector[MAX_PORTALS_QBSP / 8];
-    byte uncompressed[MAX_MAP_LEAFS_QBSP / 8];
-    byte compressed[MAX_MAP_LEAFS_QBSP / 8];
+    byte portalvector[MAX_PORTALS / 8];
+    byte uncompressed[MAX_MAP_LEAFS / 8];
+    byte compressed[MAX_MAP_LEAFS / 8];
     int32_t i, j;
     int32_t numvis;
     byte *dest;
@@ -334,7 +334,7 @@ void LoadPortals(char *name) {
     dvis->numclusters = portalclusters;
     vismap_p          = (byte *)&dvis->bitofs[portalclusters];
 
-    vismap_end        = vismap + MAX_MAP_VISIBILITY_QBSP;
+    vismap_end        = vismap + MAX_MAP_VISIBILITY;
 
     for (i = 0, p = portals; i < numportals; i++) {
         if (fscanf(f, "%i %i %i ", &numpoints, &leafnums[0], &leafnums[1]) != 3)
@@ -414,8 +414,8 @@ void CalcPHS(void) {
     uint32_t *dest, *src;
     byte *scan;
     int32_t count;
-    byte uncompressed[MAX_MAP_LEAFS_QBSP / 8];
-    byte compressed[MAX_MAP_LEAFS_QBSP / 8];
+    byte uncompressed[MAX_MAP_LEAFS / 8];
+    byte compressed[MAX_MAP_LEAFS / 8];
 
     printf("Building PHS...\n");
 

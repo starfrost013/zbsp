@@ -204,7 +204,7 @@ void FinishVisPortals_r(node_t *node) {
 int32_t clusterleaf;
 void SaveClusters_r(node_t *node) {
     if (node->planenum == PLANENUM_LEAF) {
-        dleafsX[clusterleaf++].cluster = node->cluster;
+        dleafs[clusterleaf++].cluster = node->cluster;
         return;
     }
     SaveClusters_r(node->children[0]);
@@ -239,8 +239,8 @@ void WritePortalFile(tree_t *tree) {
     // write the file
     sprintf(filename, "%s.prt", source);
 
-    printf("\ntexinfo count: %i of %i maximum\n", numtexinfo, MAX_MAP_TEXINFO_QBSP);
-    printf("brushsides count: %i of %i maximum\n", nummapbrushsides, MAX_MAP_BRUSHSIDES_QBSP);
+    printf("\ntexinfo count: %i of %i maximum\n", numtexinfo, MAX_MAP_TEXINFO);
+    printf("brushsides count: %i of %i maximum\n", nummapbrushsides, MAX_MAP_BRUSHSIDES);
 
     printf("writing %s\n", filename);
     pf = fopen(filename, "w");

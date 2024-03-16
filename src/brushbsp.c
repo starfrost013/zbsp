@@ -378,7 +378,7 @@ int32_t QuickTestBrushToPlanenum(bspbrush_t *brush, int32_t planenum, int32_t *n
     // we can tell the side for sure
     for (i = 0; i < brush->numsides; i++) {
         num = brush->sides[i].planenum;
-        if (num >= MAX_MAP_PLANES_QBSP)
+        if (num >= MAX_MAP_PLANES)
             Error("bad planenum");
         if (num == planenum)
             return PSIDE_BACK | PSIDE_FACING;
@@ -421,7 +421,7 @@ int32_t TestBrushToPlanenum(bspbrush_t *brush, int32_t planenum,
     // we can tell the side for sure
     for (i = 0; i < brush->numsides; i++) {
         num = brush->sides[i].planenum;
-        if (num >= MAX_MAP_PLANES_QBSP)
+        if (num >= MAX_MAP_PLANES)
             Error("bad planenum");
         if (num == planenum)
             return PSIDE_BACK | PSIDE_FACING;

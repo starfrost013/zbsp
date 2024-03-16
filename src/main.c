@@ -170,7 +170,7 @@ int32_t main(int32_t argc, char *argv[]) {
     int32_t i;
 
     // TEMPORARY
-    max_entities = MAX_MAP_ENTITIES_QBSP;
+    max_entities = MAX_MAP_ENTITIES;
     max_bounds = MAX_MAP_SIZE;
     block_size = MAX_BLOCK_SIZE; // qb: otherwise limits map range
 
@@ -348,8 +348,8 @@ int32_t main(int32_t argc, char *argv[]) {
         } else if (!strcmp(argv[i], "-maxdata")) { // qb: allows increase for some engines
             maxdata = atoi(argv[i + 1]);
             i++;
-            if (maxdata > DEFAULT_MAP_LIGHTING) {
-                printf("lighting maxdata (%i) exceeds typical limit (%i).\n", maxdata, DEFAULT_MAP_LIGHTING);
+            if (maxdata > MAX_MAP_LIGHTING) {
+                printf("lighting maxdata (%i) exceeds typical limit (%i).\n", maxdata, MAX_MAP_LIGHTING);
             }
         } else if (!strcmp(argv[i], "-scale")) {
             lightscale = atof(argv[i + 1]);

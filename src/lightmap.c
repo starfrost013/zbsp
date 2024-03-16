@@ -25,12 +25,11 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #define MAX_LSTYLES    256
 
-#define SINGLEMAP      (64 * 64 * 4)
-#define QBSP_SINGLEMAP (256 * 256 * 4) // qb: higher res lightmaps
+#define SINGLEMAP (256 * 256 * 4) // qb: higher res lightmaps
+
 typedef struct
 {
     dface_t *faces[2];
-    dface_tx *facesX[2];
     qboolean coplanar;
     qboolean smooth;
     vec_t cos_normals_angle;
@@ -38,12 +37,12 @@ typedef struct
     vec3_t vertex_normal[2];
 } edgeshare_t;
 
-edgeshare_t edgeshare[MAX_MAP_EDGES_QBSP];
+edgeshare_t edgeshare[MAX_MAP_EDGES];
 
-int32_t facelinks[MAX_MAP_FACES_QBSP];
-int32_t planelinks[2][MAX_MAP_PLANES_QBSP];
-int32_t maxdata = DEFAULT_MAP_LIGHTING;
-vec3_t face_texnormals[MAX_MAP_FACES_QBSP];
+int32_t facelinks[MAX_MAP_FACES];
+int32_t planelinks[2][MAX_MAP_PLANES];
+int32_t maxdata = MAX_MAP_LIGHTING;
+vec3_t face_texnormals[MAX_MAP_FACES];
 float sunradscale = 0.5;
 byte *dlightdata_ptr;
 
@@ -54,10 +53,10 @@ typedef struct face_extents_s {
     vec_t st_mins[2], st_maxs[2];
 } face_extents_t;
 
-static face_extents_t face_extents[MAX_MAP_FACES_QBSP];
+static face_extents_t face_extents[MAX_MAP_FACES];
 
 const dplane_t *getPlaneFromFaceNumber(const uint32_t faceNumber) {
-    dface_tx* face = &dfacesX[faceNumber];
+    dface_t* face = &dfaces[faceNumber];
     if (face->side) {
         return &backplanes[face->planenum];
     }
@@ -89,9 +88,9 @@ void BuildFaceExtents(void) {
 
     for (k = 0; k < numfaces; k++)
     {
-        const dface_tx* s = &dfacesX[k];
+        const dface_t* s = &dfaces[k];
         const texinfo_t* tex = &texinfo[s->texinfo];
-        const size_t face_index = (ptrdiff_t)(s - dfacesX);
+        const size_t face_index = (ptrdiff_t)(s - dfaces);
 
         vec_t* mins = face_extents[face_index].mins;
         vec_t* maxs = face_extents[face_index].maxs;
@@ -107,10 +106,10 @@ void BuildFaceExtents(void) {
         for (i = 0; i < s->numedges; i++) {
             const int32_t e = dsurfedges[s->firstedge + i];
             if (e >= 0) {
-                v = dvertexes + dedgesX[e].v[0];
+                v = dvertexes + dedges[e].v[0];
             }
             else {
-                v = dvertexes + dedgesX[-e].v[1];
+                v = dvertexes + dedges[-e].v[1];
             }
 
             for (j = 0; j < 3; j++) // calculate mins, maxs
@@ -169,8 +168,8 @@ LinkPlaneFaces
 void LinkPlaneFaces(void) {
     int32_t i;
 
-    dface_tx* f;
-    f = dfacesX;
+    dface_t* f;
+    f = dfaces;
     for (i = 0; i < numfaces; i++, f++) {
         facelinks[i] = planelinks[f->side][f->planenum];
         planelinks[f->side][f->planenum] = i;
@@ -189,18 +188,6 @@ const dplane_t *getPlaneFromFace(const dface_t *face) {
     }
 }
 
-const dplane_t *getPlaneFromFaceX(const dface_tx *face) {
-    if (!face) {
-        Error("getPlaneFromFaceX face was NULL\n");
-    }
-
-    if (face->side) {
-        return &backplanes[face->planenum];
-    } else {
-        return &dplanes[face->planenum];
-    }
-}
-
 /*
 ============
 PairEdges
@@ -209,7 +196,7 @@ PairEdges
 
 // qb: VHLT
 
-int32_t AddFaceForVertexNormalX(const int32_t edgeabs, int32_t edgeabsnext, const int32_t edgeend, int32_t edgeendnext, dface_tx *const f, dface_tx *fnext, vec_t angle, vec3_t normal)
+int32_t AddFaceForVertexNormal(const int32_t edgeabs, int32_t edgeabsnext, const int32_t edgeend, int32_t edgeendnext, dface_t *const f, dface_t *fnext, vec_t angle, vec3_t normal)
 // Must guarantee these faces will form a loop or a chain, otherwise will result in endless loop.
 //
 //   e[end]/enext[endnext]
@@ -222,72 +209,8 @@ int32_t AddFaceForVertexNormalX(const int32_t edgeabs, int32_t edgeabsnext, cons
 //  e   enext
 //
 {
-    VectorCopy(getPlaneFromFaceX(f)->normal, normal);
-    int32_t vnum = dedgesX[edgeabs].v[edgeend];
-    int32_t edge = 0, edgenext = 0;
-    int32_t i, e, count1, count2;
-    vec_t dot;
-    for (count1 = count2 = 0, i = 0; i < f->numedges; i++) {
-        e = dsurfedges[f->firstedge + i];
-        if (dedgesX[abs(e)].v[0] == dedgesX[abs(e)].v[1])
-            continue;
-        if (abs(e) == edgeabs) {
-            edge = e;
-            count1++;
-        } else if (dedgesX[abs(e)].v[0] == vnum || dedgesX[abs(e)].v[1] == vnum) {
-            edgenext = e;
-            count2++;
-        }
-    }
-    if (count1 != 1 || count2 != 1) {
-        qprintf("AddFaceForVertexNormalX bad face: edgeabs=%d edgeend=%d\n", edgeabs, edgeend);
-        return -1;
-    }
-    int32_t vnum11, vnum12, vnum21, vnum22;
-    vec3_t vec1, vec2;
-
-    vnum11 = dedgesX[abs(edge)].v[edge > 0 ? 0 : 1];
-    vnum12 = dedgesX[abs(edge)].v[edge > 0 ? 1 : 0];
-    vnum21 = dedgesX[abs(edgenext)].v[edgenext > 0 ? 0 : 1];
-    vnum22 = dedgesX[abs(edgenext)].v[edgenext > 0 ? 1 : 0];
-
-    if (vnum == vnum12 && vnum == vnum21 && vnum != vnum11 && vnum != vnum22) {
-        VectorSubtract(dvertexes[vnum11].point, dvertexes[vnum].point, vec1);
-        VectorSubtract(dvertexes[vnum22].point, dvertexes[vnum].point, vec2);
-        edgeabsnext = abs(edgenext);
-        edgeendnext = edgenext > 0 ? 0 : 1;
-    } else if (vnum == vnum11 && vnum == vnum22 && vnum != vnum12 && vnum != vnum21) {
-        VectorSubtract(dvertexes[vnum12].point, dvertexes[vnum].point, vec1);
-        VectorSubtract(dvertexes[vnum21].point, dvertexes[vnum].point, vec2);
-        edgeabsnext = abs(edgenext);
-        edgeendnext = edgenext > 0 ? 1 : 0;
-    } else {
-        qprintf("AddFaceForVertexNormalX bad face: edgeabs=%d edgeend=%d\n", edgeabs, edgeend);
-        return -1;
-    }
-    VectorNormalize(vec1, vec1);
-    VectorNormalize(vec2, vec2);
-    dot             = DotProduct(vec1, vec2);
-    dot             = dot > 1 ? 1 : dot < -1 ? -1
-                                             : dot;
-    angle           = acos(dot);
-    edgeshare_t *es = &edgeshare[edgeabsnext];
-    if (!(es->facesX[0] && es->facesX[1]))
-        return 1;
-    if (es->facesX[0] == f && es->facesX[1] != f)
-        fnext = es->facesX[1];
-    else if (es->facesX[1] == f && es->facesX[0] != f)
-        fnext = es->facesX[0];
-    else {
-        qprintf("AddFaceForVertexNormalX bad face: edgeabs=%d edgeend=%d\n", edgeabs, edgeend);
-        return -1;
-    }
-    return 0;
-}
-
-int32_t AddFaceForVertexNormal(const int32_t edgeabs, int32_t edgeabsnext, const int32_t edgeend, int32_t edgeendnext, dface_t *const f, dface_t *fnext, vec_t angle, vec3_t normal) {
     VectorCopy(getPlaneFromFace(f)->normal, normal);
-    int32_t vnum = dedgesX[edgeabs].v[edgeend];
+    int32_t vnum = dedges[edgeabs].v[edgeend];
     int32_t edge = 0, edgenext = 0;
     int32_t i, e, count1, count2;
     vec_t dot;
@@ -304,7 +227,7 @@ int32_t AddFaceForVertexNormal(const int32_t edgeabs, int32_t edgeabsnext, const
         }
     }
     if (count1 != 1 || count2 != 1) {
-        qprintf("AddFaceForVertexNormal bad face: edgeabs=%d edgeend=%d\n", edgeabs, edgeend);
+        qprintf("AddFaceForVertexNormalX bad face: edgeabs=%d edgeend=%d\n", edgeabs, edgeend);
         return -1;
     }
     int32_t vnum11, vnum12, vnum21, vnum22;
@@ -326,7 +249,7 @@ int32_t AddFaceForVertexNormal(const int32_t edgeabs, int32_t edgeabsnext, const
         edgeabsnext = abs(edgenext);
         edgeendnext = edgenext > 0 ? 1 : 0;
     } else {
-        qprintf("AddFaceForVertexNormal bad face: edgeabs=%d edgeend=%d\n", edgeabs, edgeend);
+        qprintf("AddFaceForVertexNormalX bad face: edgeabs=%d edgeend=%d\n", edgeabs, edgeend);
         return -1;
     }
     VectorNormalize(vec1, vec1);
@@ -343,7 +266,7 @@ int32_t AddFaceForVertexNormal(const int32_t edgeabs, int32_t edgeabsnext, const
     else if (es->faces[1] == f && es->faces[0] != f)
         fnext = es->faces[0];
     else {
-        qprintf("AddFaceForVertexNormal bad face: edgeabs=%d edgeend=%d\n", edgeabs, edgeend);
+        qprintf("AddFaceForVertexNormalX bad face: edgeabs=%d edgeend=%d\n", edgeabs, edgeend);
         return -1;
     }
     return 0;
@@ -358,11 +281,11 @@ void PairEdges() {
     edgeshare_t *e;
 
     memset(&edgeshare, 0, sizeof(edgeshare));
-    dface_tx* f;
-    f = dfacesX;
+    dface_t* f;
+    f = dfaces;
     for (i = 0; i < numfaces; i++, f++) {
         {
-            const dplane_t* fp = getPlaneFromFaceX(f);
+            const dplane_t* fp = getPlaneFromFace(f);
             vec3_t texnormal;
             const texinfo_t* tex = &texinfo[f->texinfo];
             CrossProduct(tex->vecs[1], tex->vecs[0], texnormal);
@@ -378,36 +301,36 @@ void PairEdges() {
             if (k < 0) {
                 e = &edgeshare[-k];
 
-                assert(e->facesX[1] == NULL);
-                e->facesX[1] = f;
+                assert(e->faces[1] == NULL);
+                e->faces[1] = f;
             }
             else {
                 e = &edgeshare[k];
 
-                assert(e->facesX[0] == NULL);
-                e->facesX[0] = f;
+                assert(e->faces[0] == NULL);
+                e->faces[0] = f;
             }
 
-            if (e->facesX[0] && e->facesX[1]) {
+            if (e->faces[0] && e->faces[1]) {
                 // determine if coplanar
-                if ((e->facesX[0]->planenum == e->facesX[1]->planenum) && (e->facesX[0]->side == e->facesX[1]->side)) {
+                if ((e->faces[0]->planenum == e->faces[1]->planenum) && (e->faces[0]->side == e->faces[1]->side)) {
                     e->coplanar = true;
-                    VectorCopy(getPlaneFromFaceX(e->facesX[0])->normal, e->interface_normal);
+                    VectorCopy(getPlaneFromFace(e->faces[0])->normal, e->interface_normal);
                     e->cos_normals_angle = 1.0;
                 }
                 else {
                     // see if they fall into a "smoothing group" based on angle of the normals
                     vec3_t normals[2];
 
-                    VectorCopy(getPlaneFromFaceX(e->facesX[0])->normal, normals[0]);
-                    VectorCopy(getPlaneFromFaceX(e->facesX[1])->normal, normals[1]);
+                    VectorCopy(getPlaneFromFace(e->faces[0])->normal, normals[0]);
+                    VectorCopy(getPlaneFromFace(e->faces[1])->normal, normals[1]);
 
                     e->cos_normals_angle = DotProduct(normals[0], normals[1]);
 
                     if (e->cos_normals_angle > (1.0 - 0.01)) // qb: get sloppier than 1 - NORMAL_EPSILON
                     {
                         e->coplanar = true;
-                        VectorCopy(getPlaneFromFaceX(e->facesX[0])->normal, e->interface_normal);
+                        VectorCopy(getPlaneFromFace(e->faces[0])->normal, e->interface_normal);
                         e->cos_normals_angle = 1.0;
                     }
                     else if (smoothing_threshold > 0.0) {
@@ -422,7 +345,7 @@ void PairEdges() {
                 if (!VectorCompare(e->interface_normal, vec3_origin)) {
                     e->smooth = true;
                 }
-                if (!GetIntertexnormal(e->facesX[0] - dfacesX, e->facesX[1] - dfacesX)) {
+                if (!GetIntertexnormal(e->faces[0] - dfaces, e->faces[1] - dfaces)) {
                     // printf ("!GetIntertexnormal hit.\n");
                     e->coplanar = false;
                     VectorClear(e->interface_normal);
@@ -441,7 +364,7 @@ void PairEdges() {
         vec3_t normal, normals;
         vec3_t edgenormal;
         int32_t r, count, mme;
-        mme = MAX_MAP_EDGES_QBSP;
+        mme = MAX_MAP_EDGES;
 
         for (edgeabs = 0; edgeabs < mme; edgeabs++) {
             e = &edgeshare[edgeabs];
@@ -449,33 +372,33 @@ void PairEdges() {
                 continue;
             VectorCopy(e->interface_normal, edgenormal);
 
-            dface_tx* f, * fcurrent, * fnext;
+            dface_t* f, * fcurrent, * fnext;
 
-            if (dedgesX[edgeabs].v[0] == dedgesX[edgeabs].v[1]) {
+            if (dedges[edgeabs].v[0] == dedges[edgeabs].v[1]) {
                 vec3_t errorpos;
-                VectorCopy(dvertexes[dedgesX[edgeabs].v[0]].point, errorpos);
-                VectorAdd(errorpos, face_offset[e->facesX[0] - dfacesX], errorpos);
+                VectorCopy(dvertexes[dedges[edgeabs].v[0]].point, errorpos);
+                VectorAdd(errorpos, face_offset[e->faces[0] - dfaces], errorpos);
                 Error("PairEdges: invalid edge at (%f,%f,%f)", errorpos[0], errorpos[1], errorpos[2]);
                 VectorCopy(edgenormal, e->vertex_normal[0]);
                 VectorCopy(edgenormal, e->vertex_normal[1]);
             }
             else {
-                const dplane_t* p0 = getPlaneFromFaceX(e->facesX[0]);
-                const dplane_t* p1 = getPlaneFromFaceX(e->facesX[1]);
+                const dplane_t* p0 = getPlaneFromFace(e->faces[0]);
+                const dplane_t* p1 = getPlaneFromFace(e->faces[1]);
 
                 for (edgeend = 0; edgeend < 2; edgeend++) {
                     vec3_t errorpos;
-                    VectorCopy(dvertexes[dedgesX[edgeabs].v[edgeend]].point, errorpos);
-                    VectorAdd(errorpos, face_offset[e->facesX[0] - dfacesX], errorpos);
+                    VectorCopy(dvertexes[dedges[edgeabs].v[edgeend]].point, errorpos);
+                    VectorAdd(errorpos, face_offset[e->faces[0] - dfaces], errorpos);
                     angles = 0;
                     VectorClear(normals);
 
                     for (d = 0; d < 2; d++) {
-                        f = e->facesX[d];
+                        f = e->faces[d];
                         count = 0, fnext = f, edgeabsnext = edgeabs, edgeendnext = edgeend;
                         while (1) {
                             fcurrent = fnext;
-                            r = AddFaceForVertexNormalX(edgeabsnext, edgeabsnext, edgeendnext, edgeendnext, fcurrent, fnext, angle, normal);
+                            r = AddFaceForVertexNormal(edgeabsnext, edgeabsnext, edgeendnext, edgeendnext, fcurrent, fnext, angle, normal);
                             count++;
                             if (r == -1) {
                                 // qprintf("PairEdges: face edges mislink at (%f,%f,%f)", errorpos[0], errorpos[1], errorpos[2]);
@@ -489,7 +412,7 @@ void PairEdges() {
                                 break;
                             if (DotProduct(edgenormal, normal) + NORMAL_EPSILON < smoothing_threshold)
                                 break;
-                            if (!GetIntertexnormal(fcurrent - dfacesX, e->facesX[0] - dfacesX) || !GetIntertexnormal(fcurrent - dfacesX, e->facesX[1] - dfacesX))
+                            if (!GetIntertexnormal(fcurrent - dfaces, e->faces[0] - dfaces) || !GetIntertexnormal(fcurrent - dfaces, e->faces[1] - dfaces))
                                 break;
                             angles += angle;
                             VectorMA(normals, angle, normal, normals);
@@ -885,7 +808,7 @@ typedef struct
     vec3_t facenormal;
 
     int32_t numsurfpt;
-    vec3_t surfpt[QBSP_SINGLEMAP];
+    vec3_t surfpt[SINGLEMAP];
 
     vec3_t modelorg; // for origined bmodels
 
@@ -898,7 +821,6 @@ typedef struct
     int32_t texmins[2], texsize[2];
     int32_t surfnum;
     dface_t *face;
-    dface_tx *faceX;
 } lightinfo_t;
 
 /*
@@ -915,9 +837,8 @@ void CalcFaceExtents(lightinfo_t *l) {
     dvertex_t *v;
     texinfo_t *tex;
     vec3_t vt;
-    map = QBSP_SINGLEMAP;
-    dface_tx* s;
-    s = l->faceX;
+    dface_t* s;
+    s = l->face;
 
     mins[0] = mins[1] = BOGUS_RANGE;
     maxs[0] = maxs[1] = -BOGUS_RANGE;
@@ -928,9 +849,9 @@ void CalcFaceExtents(lightinfo_t *l) {
         e = dsurfedges[s->firstedge + i];
 
         if (e >= 0)
-            v = dvertexes + dedgesX[e].v[0];
+            v = dvertexes + dedges[e].v[0];
         else
-            v = dvertexes + dedgesX[-e].v[1];
+            v = dvertexes + dedges[-e].v[1];
 
         //		VectorAdd (v->point, l->modelorg, vt);
         VectorCopy(v->point, vt);
@@ -986,7 +907,7 @@ Fills in texorg, worldtotex. and textoworld
 ================
 */
 void CalcFaceVectors(lightinfo_t *l) {
-    texinfo_t *tex = &texinfo[l->faceX->texinfo];
+    texinfo_t *tex = &texinfo[l->face->texinfo];
     int32_t i, j;
     vec3_t texnormal;
     vec_t distscale;
@@ -1089,8 +1010,8 @@ void CalcPoints(lightinfo_t *l, float sofs, float tofs) {
                 for (j = 0; j < 3; j++)
                     surf[j] = l->texorg[j] + l->textoworld[0][j] * us + l->textoworld[1][j] * ut;
 
-                dleaf_tx* leaf;
-                leaf = RadPointInLeafX(surf);
+                dleaf_t* leaf;
+                leaf = RadPointInLeaf(surf);
                 if (leaf->contents != CONTENTS_SOLID) {
                     if (!TestLine_r(0, facemid, surf))
                         break; // got it
@@ -1135,8 +1056,8 @@ typedef struct
     float *samples[MAX_STYLES];
 } facelight_t;
 
-directlight_t *directlights[MAX_MAP_LEAFS_QBSP];
-facelight_t facelight[MAX_MAP_FACES_QBSP];
+directlight_t *directlights[MAX_MAP_LEAFS];
+facelight_t facelight[MAX_MAP_FACES];
 int32_t numdlights;
 
 /*
@@ -1170,7 +1091,6 @@ void CreateDirectLights(void) {
     patch_t *p;
     directlight_t *dl;
     dleaf_t *leaf;
-    dleaf_tx *leafX;
     int32_t cluster;
     entity_t *e, *e2;
     char *name;
@@ -1259,8 +1179,8 @@ void CreateDirectLights(void) {
 
         dl->nodenum = PointInNodenum(dl->origin);
 
-        leafX = RadPointInLeafX(dl->origin);
-        cluster = leafX->cluster;
+        leaf = RadPointInLeaf(dl->origin);
+        cluster = leaf->cluster;
 
         dl->next              = directlights[cluster];
         directlights[cluster] = dl;
@@ -1358,9 +1278,9 @@ void CreateDirectLights(void) {
 
         VectorCopy(p->origin, dl->origin);
 
-        leafX = RadPointInLeafX(dl->origin);
-        cluster = leafX->cluster;
-        dl->leafX = leafX;
+        leaf = RadPointInLeaf(dl->origin);
+        cluster = leaf->cluster;
+        dl->leaf = leaf;
 
         dl->next              = directlights[cluster];
         directlights[cluster] = dl;
@@ -1399,8 +1319,8 @@ re_test:
     // headNode is guaranteed to be <= nodeNum1 and nodeNum1 is < nodeNum2
     if (headNode == nodeNum1)
         return headNode;
-    dnode_tx* node;
-    child1 = (node = dnodesX + headNode)->children[1];
+    dnode_t* node;
+    child1 = (node = dnodes + headNode)->children[1];
 
     if (nodeNum2 < child1)
     {
@@ -1696,11 +1616,10 @@ void GetPhongNormal(int32_t facenum, vec3_t spot, vec3_t phongnormal) {
     // Second attempt: find edge points+center that bound the point and do a three-point triangulation(baricentric)
     // Better third attempt: generate the point normals for all vertices and do baricentric triangulation.
 
-    const dface_tx *fx = dfacesX + facenum;
-    const dface_t *fi  = dfaces + facenum;
+    const dface_t *fi = dfaces + facenum;
 
-    const dplane_t* p = getPlaneFromFaceX(fx);
-    ne = fx->numedges;
+    const dplane_t* p = getPlaneFromFace(fi);
+    ne = fi->numedges;
     VectorCopy(p->normal, facenormal);
     VectorCopy(facenormal, phongnormal);
 
@@ -1724,20 +1643,20 @@ void GetPhongNormal(int32_t facenum, vec3_t spot, vec3_t phongnormal) {
         float bb;
         float ab;
         if (j) {
-            prev_edge = fx->firstedge + ((j + fx->numedges - 1) % fx->numedges);
+            prev_edge = fi->firstedge + ((j + fi->numedges - 1) % fi->numedges);
         }
         else {
-            prev_edge = fx->firstedge + fx->numedges - 1;
+            prev_edge = fi->firstedge + fi->numedges - 1;
         }
 
-        if ((j + 1) != fx->numedges) {
-            next_edge = fx->firstedge + ((j + 1) % fx->numedges);
+        if ((j + 1) != fi->numedges) {
+            next_edge = fi->firstedge + ((j + 1) % fi->numedges);
         }
         else {
-            next_edge = fx->firstedge;
+            next_edge = fi->firstedge;
         }
 
-        e = dsurfedges[fx->firstedge + j];
+        e = dsurfedges[fi->firstedge + j];
         e1 = dsurfedges[prev_edge];
         e2 = dsurfedges[next_edge];
 
@@ -1749,12 +1668,12 @@ void GetPhongNormal(int32_t facenum, vec3_t spot, vec3_t phongnormal) {
             continue;
         }
         if (e > 0) {
-            VectorCopy(dvertexes[dedgesX[e].v[0]].point, p1);
-            VectorCopy(dvertexes[dedgesX[e].v[1]].point, p2);
+            VectorCopy(dvertexes[dedges[e].v[0]].point, p1);
+            VectorCopy(dvertexes[dedges[e].v[1]].point, p2);
         }
         else {
-            VectorCopy(dvertexes[dedgesX[-e].v[1]].point, p1);
-            VectorCopy(dvertexes[dedgesX[-e].v[0]].point, p2);
+            VectorCopy(dvertexes[dedges[-e].v[1]].point, p1);
+            VectorCopy(dvertexes[dedges[-e].v[0]].point, p2);
         }
 
         // Adjust for origin-based models
@@ -1868,8 +1787,8 @@ void BuildFacelights(int32_t facenum) {
     liteinfo = malloc(sizeof(*liteinfo) * 5);
     styletable = malloc(sizeof(*styletable) * MAX_LSTYLES);
 
-    dface_tx* this_face;
-    this_face = &dfacesX[facenum];
+    dface_t* this_face;
+    this_face = &dfaces[facenum];
 
     if (texinfo[this_face->texinfo].flags & (SURF_WARP | SURF_SKY))
         goto cleanup; // non-lit texture
@@ -1883,7 +1802,7 @@ void BuildFacelights(int32_t facenum) {
     for (i = 0; i < numsamples; i++) {
         memset(&liteinfo[i], 0, sizeof(liteinfo[i]));
         liteinfo[i].surfnum = facenum;
-        liteinfo[i].faceX = this_face;
+        liteinfo[i].face = this_face;
         VectorCopy(dplanes[this_face->planenum].normal, liteinfo[i].facenormal);
         liteinfo[i].facedist = dplanes[this_face->planenum].dist;
         if (this_face->side) {
@@ -1915,7 +1834,7 @@ void BuildFacelights(int32_t facenum) {
         sun_main_once    = false;
 
         for (j = 0; j < numsamples; j++) {
-            byte pvs[(MAX_MAP_LEAFS_QBSP + 7) / 8];
+            byte pvs[(MAX_MAP_LEAFS + 7) / 8];
 
             if (numsamples > 1) {
                 if (!NudgeSamplePosition(liteinfo[j].surfpt[i], liteinfo[0].facenormal, center, pos, pvs)) {
@@ -2004,8 +1923,8 @@ void FinalLightFace(int32_t facenum) {
     }
     ThreadUnlock();
 
-    dface_tx* f;
-    f = &dfacesX[facenum];
+    dface_t* f;
+    f = &dfaces[facenum];
 
     if (texinfo[f->texinfo].flags & (SURF_WARP | SURF_SKY))
         return; // non-lit texture
@@ -2024,10 +1943,10 @@ void FinalLightFace(int32_t facenum) {
 
             ednum = dsurfedges[f->firstedge + i];
             if (ednum >= 0)
-                AddPointToBounds(dvertexes[dedgesX[ednum].v[0]].point,
+                AddPointToBounds(dvertexes[dedges[ednum].v[0]].point,
                     facemins, facemaxs);
             else
-                AddPointToBounds(dvertexes[dedgesX[-ednum].v[1]].point,
+                AddPointToBounds(dvertexes[dedges[-ednum].v[1]].point,
                     facemins, facemaxs);
         }
 
@@ -2167,8 +2086,8 @@ void FinalLightFaceSH(int32_t facenum) {
     }
     ThreadUnlock();
 
-    dface_tx* f;
-    f = &dfacesX[facenum];
+    dface_t* f;
+    f = &dfaces[facenum];
 
     if (texinfo[f->texinfo].flags & (SURF_WARP | SURF_SKY))
         return; // non-lit texture
@@ -2187,10 +2106,10 @@ void FinalLightFaceSH(int32_t facenum) {
 
             ednum = dsurfedges[f->firstedge + i];
             if (ednum >= 0)
-                AddPointToBounds(dvertexes[dedgesX[ednum].v[0]].point,
+                AddPointToBounds(dvertexes[dedges[ednum].v[0]].point,
                     facemins, facemaxs);
             else
-                AddPointToBounds(dvertexes[dedgesX[-ednum].v[1]].point,
+                AddPointToBounds(dvertexes[dedges[-ednum].v[1]].point,
                     facemins, facemaxs);
         }
 

@@ -562,7 +562,7 @@ all seperating planes, and both portals must be behind the mew portal
 
 int32_t c_flood, c_vis;
 
-char test_leaf[MAX_MAP_LEAFS_QBSP];
+char test_leaf[MAX_MAP_LEAFS];
 
 /*
 ==================
@@ -670,7 +670,7 @@ void RecursiveLeafBitFlow(int32_t leafnum, byte *mightsee, byte *cansee) {
     int32_t i, j;
     uint32_t more;
     int32_t pnum;
-    byte newmight[MAX_MAP_PORTALS_QBSP / 8];
+    byte newmight[MAX_MAP_PORTALS / 8];
 
     leaf = &leafs[leafnum];
 

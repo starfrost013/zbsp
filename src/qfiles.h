@@ -181,24 +181,6 @@ typedef struct {
 #define DEFAULT_MAP_TEXINFO      8192  // mxd: vanilla
 #define MAX_MAP_TEXINFO          16384 // mxd: KMQ2
 
-#define MAX_MAP_AREAS            256
-#define MAX_MAP_AREAPORTALS      1024
-#define MAX_MAP_PLANES           65536
-#define MAX_MAP_NODES            65536
-#define MAX_MAP_BRUSHSIDES       65536
-#define MAX_MAP_LEAFS            65536
-#define MAX_MAP_VERTS            65536
-#define MAX_MAP_FACES            65536
-#define MAX_MAP_LEAFFACES        65536
-#define MAX_MAP_LEAFBRUSHES      65536
-#define MAX_MAP_PORTALS          65536
-#define MAX_MAP_EDGES            128000
-#define MAX_MAP_SURFEDGES        256000
-#define DEFAULT_MAP_LIGHTING     0x200000 // qb: vanilla
-#define MAX_MAP_LIGHTING         0x800000 // qb: q2pro
-#define DEFAULT_MAP_VISIBILITY   0x100000
-#define MAX_MAP_VISIBILITY       0x400000
-
 // qb: map bounds are +/- MAX
 #define DEFAULT_MAP_SIZE         4096
 #define MAX_MAP_SIZE             32768
@@ -206,26 +188,28 @@ typedef struct {
 #define MAX_POINTS_HASH          MAX_MAP_SIZE / 64
 
 // qb: qbsp limits
-#define WARN_MAP_MODELS_QBSP     32768
-#define MAX_MAP_MODELS_QBSP      131072
-#define MAX_MAP_BRUSHES_QBSP     1048576
-#define WARN_MAP_ENTITIES_QBSP   32768
-#define MAX_MAP_ENTITIES_QBSP    131072
-#define MAX_MAP_ENTSTRING_QBSP   13631488
-#define MAX_MAP_TEXINFO_QBSP     1048576
-#define MAX_MAP_PLANES_QBSP      1048576
-#define MAX_MAP_NODES_QBSP       1048576
-#define MAX_MAP_LEAFS_QBSP       1048576
-#define MAX_MAP_VERTS_QBSP       4194304
-#define MAX_MAP_FACES_QBSP       1048576
-#define MAX_MAP_LEAFFACES_QBSP   1048576
-#define MAX_MAP_LEAFBRUSHES_QBSP 1048576
-#define MAX_MAP_EDGES_QBSP       1048576
-#define MAX_MAP_BRUSHSIDES_QBSP  4194304
-#define MAX_MAP_PORTALS_QBSP     1048576
-#define MAX_MAP_SURFEDGES_QBSP   4194304
-#define MAX_MAP_LIGHTING_QBSP    54525952
-#define MAX_MAP_VISIBILITY_QBSP  0x8000000
+#define MAX_MAP_AREAS           256
+#define MAX_MAP_AREAPORTALS     1024
+#define WARN_MAP_MODELS         32768
+#define MAX_MAP_MODELS          131072
+#define MAX_MAP_BRUSHES         1048576
+#define WARN_MAP_ENTITIES       32768
+#define MAX_MAP_ENTITIES        131072
+#define MAX_MAP_ENTSTRING       13631488
+#define MAX_MAP_TEXINFO         1048576
+#define MAX_MAP_PLANES          1048576
+#define MAX_MAP_NODES           1048576
+#define MAX_MAP_LEAFS           1048576
+#define MAX_MAP_VERTS           4194304
+#define MAX_MAP_FACES           1048576
+#define MAX_MAP_LEAFFACES       1048576
+#define MAX_MAP_LEAFBRUSHES     1048576
+#define MAX_MAP_EDGES           1048576
+#define MAX_MAP_BRUSHSIDES      4194304
+#define MAX_MAP_PORTALS         1048576
+#define MAX_MAP_SURFEDGES       4194304
+#define MAX_MAP_LIGHTING        54525952
+#define MAX_MAP_VISIBILITY      0x8000000
 
 // key / value pair sizes
 
@@ -255,10 +239,9 @@ typedef struct
 #define LUMP_MODELS      13
 #define LUMP_BRUSHES     14
 #define LUMP_BRUSHSIDES  15
-#define LUMP_POP         16
-#define LUMP_AREAS       17
-#define LUMP_AREAPORTALS 18
-#define HEADER_LUMPS     19
+#define LUMP_AREAS       16
+#define LUMP_AREAPORTALS 17
+#define HEADER_LUMPS     18
 
 typedef struct
 {
@@ -362,17 +345,7 @@ typedef struct
 #define SURF_SCROLLFLIP       (uint32_t)1 << 31 //flip scroll directon
 
 
-// qb: qbsp types - dnode_tx, dedge_tx, dface_tx, dleaf_tx, dbrushside_tx
-
-typedef struct
-{
-    int32_t planenum;
-    int32_t children[2]; // negative numbers are -(leafs+1), not nodes
-    short mins[3];       // for frustom culling
-    short maxs[3];
-    uint16_t firstface;
-    uint16_t numfaces; // counting both sides
-} dnode_t;
+// qb: qbsp types - dnode_tx, dedge_t, dface_tx, dleaf_tx, dbrushside_tx
 
 typedef struct
 {
@@ -382,7 +355,7 @@ typedef struct
     float maxs[3];
     uint32_t firstface;
     uint32_t numfaces; // counting both sides
-} dnode_tx;            // qb: qbsp
+} dnode_t;            // qb: qbsp
 
 #define TEXTURE_LENGTH      80
 
@@ -394,33 +367,12 @@ typedef struct texinfo_s {
     int32_t nexttexinfo; // for animations, -1 = end of chain
 } texinfo_t;
 
-// note that edge 0 is never used, because negative edge nums are used for
-// counterclockwise use of the edge in a face
-typedef struct
-{
-    uint16_t v[2]; // vertex numbers
-} dedge_t;
-
 typedef struct
 {
     uint32_t v[2]; // vertex numbers
-} dedge_tx;        // qb: qbsp
+} dedge_t;        // qb: qbsp
 
 #define MAXLIGHTMAPS 4
-typedef struct
-{
-    uint16_t planenum;
-    short side;
-
-    int32_t firstedge; // we must support > 64k edges
-    short numedges;
-    short texinfo;
-
-    // lighting info
-    byte styles[MAXLIGHTMAPS];
-    int32_t lightofs; // start of [numstyles*surfsize] samples
-} dface_t;
-
 typedef struct
 {
     uint32_t planenum;
@@ -433,24 +385,7 @@ typedef struct
     // lighting info
     byte styles[MAXLIGHTMAPS];
     int32_t lightofs; // start of [numstyles*surfsize] samples
-} dface_tx;           // qb: qbsp
-
-typedef struct
-{
-    int32_t contents; // OR of all brushes (not needed?)
-
-    short cluster;
-    short area;
-
-    short mins[3]; // for frustum culling
-    short maxs[3];
-
-    uint16_t firstleafface;
-    uint16_t numleaffaces;
-
-    uint16_t firstleafbrush;
-    uint16_t numleafbrushes;
-} dleaf_t;
+} dface_t;           // qb: qbsp
 
 typedef struct
 {
@@ -467,21 +402,13 @@ typedef struct
 
     uint32_t firstleafbrush;
     uint32_t numleafbrushes;
-} dleaf_tx; // qb: qbsp
-
-typedef struct
-{
-    uint16_t planenum; // facing out of the leaf
-    short texinfo;
-} dbrushside_t;
+} dleaf_t; // qb: qbsp
 
 typedef struct
 {
     uint32_t planenum; // facing out of the leaf
     int32_t texinfo;
-} dbrushside_tx; // qb: qbsp
-
-// qbsp /////////////////////////
+} dbrushside_t; // qb: qbsp
 
 typedef struct
 {

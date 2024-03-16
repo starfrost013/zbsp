@@ -25,7 +25,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 //#define	MAX_PORTALS	32767
 
-#define MAX_PORTALS_QBSP MAX_MAP_PORTALS_QBSP / 2 // qb: half
+#define MAX_PORTALS MAX_MAP_PORTALS / 2 // qb: half
 
 #define PORTALFILE       "PRT1"
 
@@ -87,7 +87,7 @@ typedef struct leaf_s {
 } leaf_t;
 
 typedef struct pstack_s {
-    byte mightsee[MAX_PORTALS_QBSP / 8]; // bit string
+    byte mightsee[MAX_PORTALS / 8]; // bit string
     struct pstack_s *next;
     leaf_t *leaf;
     portal_t *portal; // portal exiting
@@ -131,6 +131,6 @@ void BasePortalVis(int32_t portalnum);
 void BetterPortalVis(int32_t portalnum);
 void PortalFlow(int32_t portalnum);
 
-extern portal_t *sorted_portals[MAX_MAP_PORTALS_QBSP * 2];
+extern portal_t *sorted_portals[MAX_MAP_PORTALS * 2];
 
 int32_t CountBits(byte *bits, int32_t numbits);

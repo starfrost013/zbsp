@@ -31,60 +31,53 @@ qboolean noskipfix = false; // qb: warn about SURF_SKIP contents rather than sil
 // qb: add qbsp types
 
 int32_t nummodels;
-dmodel_t *dmodels; //[MAX_MAP_MODELS_QBSP];
+dmodel_t *dmodels; //[MAX_MAP_MODELS];
 
 int32_t visdatasize;
-byte *dvisdata; //[MAX_MAP_VISIBILITY_QBSP];
+byte *dvisdata; //[MAX_MAP_VISIBILITY];
 dvis_t *dvis;   // = (dvis_t *)dvisdata;
 
 int32_t lightdatasize;
-byte *dlightdata; //[MAX_MAP_LIGHTING_QBSP];
+byte *dlightdata; //[MAX_MAP_LIGHTING];
 
 int32_t entdatasize;
-char *dentdata; //[MAX_MAP_ENTSTRING_QBSP];
+char *dentdata; //[MAX_MAP_ENTSTRING];
 
 int32_t numleafs;
-dleaf_t *dleafs;   //[MAX_MAP_LEAFS];
-dleaf_tx *dleafsX; //[MAX_MAP_LEAFS_QBSP];
+dleaf_t *dleafs; //[MAX_MAP_LEAFS];
 
 int32_t numplanes;
-dplane_t *dplanes; //[MAX_MAP_PLANES_QBSP];
+dplane_t *dplanes; //[MAX_MAP_PLANES];
 
 int32_t numvertexes;
-dvertex_t *dvertexes; //[MAX_MAP_VERTS_QBSP];
+dvertex_t *dvertexes; //[MAX_MAP_VERTS];
 
 int32_t numnodes;
-dnode_t *dnodes;   //[MAX_MAP_NODES];
-dnode_tx *dnodesX; //[MAX_MAP_NODES_QBSP];
+dnode_t *dnodes; //[MAX_MAP_NODES];
 
 int32_t numtexinfo;
-texinfo_t *texinfo; //[MAX_MAP_TEXINFO_QBSP];
+texinfo_t *texinfo; //[MAX_MAP_TEXINFO];
 
 int32_t numfaces;
-dface_t *dfaces;   //[MAX_MAP_FACES];
-dface_tx *dfacesX; //[MAX_MAP_FACES_QBSP];
+dface_t *dfaces; //[MAX_MAP_FACES];
 
 int32_t numedges;
-dedge_t *dedges;   //[MAX_MAP_EDGES];
-dedge_tx *dedgesX; //[MAX_MAP_EDGES_QBSP];
+dedge_t *dedges; //[MAX_MAP_EDGES];
 
 int32_t numleaffaces;
-uint16_t *dleaffaces;  //[MAX_MAP_LEAFFACES];
-uint32_t *dleaffacesX; //[MAX_MAP_LEAFFACES_QBSP];
+uint32_t *dleaffaces; //[MAX_MAP_LEAFFACES];
 
 int32_t numleafbrushes;
-uint16_t *dleafbrushes;  //[MAX_MAP_LEAFBRUSHES];
-uint32_t *dleafbrushesX; //[MAX_MAP_LEAFBRUSHES_QBSP];
+uint32_t *dleafbrushes; //[MAX_MAP_LEAFBRUSHES];
 
 int32_t numsurfedges;
-int32_t *dsurfedges; //[MAX_MAP_SURFEDGES_QBSP];
+int32_t *dsurfedges; //[MAX_MAP_SURFEDGES];
 
 int32_t numbrushes;
-dbrush_t *dbrushes; //[MAX_MAP_BRUSHES_QBSP];
+dbrush_t *dbrushes; //[MAX_MAP_BRUSHES];
 
 int32_t numbrushsides;
-dbrushside_t *dbrushsides;   //[MAX_MAP_BRUSHSIDES];
-dbrushside_tx *dbrushsidesX; //[MAX_MAP_BRUSHSIDES_QBSP];
+dbrushside_t *dbrushsides; //[MAX_MAP_BRUSHSIDES];
 
 int32_t numareas;
 darea_t *dareas; //[MAX_MAP_AREAS];
@@ -98,30 +91,23 @@ void InitBSPFile(void) {
     static qboolean init = false;
     if (!init) {
         init          = true;
-        dmodels       = (dmodel_t *)malloc(sizeof(*dmodels) * MAX_MAP_MODELS_QBSP);
-        dvisdata      = (byte *)malloc(sizeof(*dvisdata) * MAX_MAP_VISIBILITY_QBSP);
+        dmodels       = (dmodel_t *)malloc(sizeof(*dmodels) * MAX_MAP_MODELS);
+        dvisdata      = (byte *)malloc(sizeof(*dvisdata) * MAX_MAP_VISIBILITY);
         dvis          = (dvis_t *)dvisdata;
-        dlightdata    = (byte *)malloc(sizeof(*dlightdata) * MAX_MAP_LIGHTING_QBSP);
-        dentdata      = (char *)malloc(sizeof(*dentdata) * MAX_MAP_ENTSTRING_QBSP);
-        dleafs        = (dleaf_t *)malloc(sizeof(*dleafs) * MAX_MAP_LEAFS);
-        dleafsX       = (dleaf_tx *)malloc(sizeof(*dleafsX) * MAX_MAP_LEAFS_QBSP);
-        dplanes       = (dplane_t *)malloc(sizeof(*dplanes) * MAX_MAP_PLANES_QBSP);
-        dvertexes     = (dvertex_t *)malloc(sizeof(*dvertexes) * MAX_MAP_VERTS_QBSP);
-        dnodes        = (dnode_t *)malloc(sizeof(*dnodes) * MAX_MAP_NODES);
-        dnodesX       = (dnode_tx *)malloc(sizeof(*dnodesX) * MAX_MAP_NODES_QBSP);
-        texinfo       = (texinfo_t *)malloc(sizeof(*texinfo) * MAX_MAP_TEXINFO_QBSP);
-        dfaces        = (dface_t *)malloc(sizeof(*dfaces) * MAX_MAP_FACES);
-        dfacesX       = (dface_tx *)malloc(sizeof(*dfacesX) * MAX_MAP_FACES_QBSP);
-        dedges        = (dedge_t *)malloc(sizeof(*dedges) * MAX_MAP_EDGES);
-        dedgesX       = (dedge_tx *)malloc(sizeof(*dedgesX) * MAX_MAP_EDGES_QBSP);
-        dleaffaces    = (uint16_t *)malloc(sizeof(*dleaffaces) * MAX_MAP_LEAFFACES);
-        dleaffacesX   = (uint32_t *)malloc(sizeof(*dleaffacesX) * MAX_MAP_LEAFFACES_QBSP);
-        dleafbrushes  = (uint16_t *)malloc(sizeof(*dleafbrushes) * MAX_MAP_LEAFBRUSHES);
-        dleafbrushesX = (uint32_t *)malloc(sizeof(*dleafbrushesX) * MAX_MAP_LEAFBRUSHES_QBSP);
-        dsurfedges    = (int32_t *)malloc(sizeof(*dsurfedges) * MAX_MAP_SURFEDGES_QBSP);
-        dbrushes      = (dbrush_t *)malloc(sizeof(*dbrushes) * MAX_MAP_BRUSHES_QBSP);
-        dbrushsides   = (dbrushside_t *)malloc(sizeof(*dbrushsides) * MAX_MAP_BRUSHSIDES);
-        dbrushsidesX  = (dbrushside_tx *)malloc(sizeof(*dbrushsidesX) * MAX_MAP_BRUSHSIDES_QBSP);
+        dlightdata    = (byte *)malloc(sizeof(*dlightdata) * MAX_MAP_LIGHTING);
+        dentdata      = (char *)malloc(sizeof(*dentdata) * MAX_MAP_ENTSTRING);
+        dleafs       = (dleaf_t *)malloc(sizeof(*dleafs) * MAX_MAP_LEAFS);
+        dplanes       = (dplane_t *)malloc(sizeof(*dplanes) * MAX_MAP_PLANES);
+        dvertexes     = (dvertex_t *)malloc(sizeof(*dvertexes) * MAX_MAP_VERTS);
+        dnodes       = (dnode_t *)malloc(sizeof(*dnodes) * MAX_MAP_NODES);
+        texinfo       = (texinfo_t *)malloc(sizeof(*texinfo) * MAX_MAP_TEXINFO);
+        dfaces       = (dface_t *)malloc(sizeof(*dfaces) * MAX_MAP_FACES);
+        dedges       = (dedge_t *)malloc(sizeof(*dedges) * MAX_MAP_EDGES);
+        dleaffaces   = (uint32_t *)malloc(sizeof(*dleaffaces) * MAX_MAP_LEAFFACES);
+        dleafbrushes = (uint32_t *)malloc(sizeof(*dleafbrushes) * MAX_MAP_LEAFBRUSHES);
+        dsurfedges    = (int32_t *)malloc(sizeof(*dsurfedges) * MAX_MAP_SURFEDGES);
+        dbrushes      = (dbrush_t *)malloc(sizeof(*dbrushes) * MAX_MAP_BRUSHES);
+        dbrushsides  = (dbrushside_t *)malloc(sizeof(*dbrushsides) * MAX_MAP_BRUSHSIDES);
         dareas        = (darea_t *)malloc(sizeof(*dareas) * MAX_MAP_AREAS);
         dareaportals  = (dareaportal_t *)malloc(sizeof(*dareaportals) * MAX_MAP_AREAPORTALS);
     }
@@ -251,50 +237,50 @@ void SwapBSPFile(qboolean todisk) {
     // faces nodes leafs brushsides leafbrushes leaffaces
     //
     for (i = 0; i < numfaces; i++) {
-        dfacesX[i].texinfo = LittleLong(dfacesX[i].texinfo);
-        dfacesX[i].planenum = LittleLong(dfacesX[i].planenum);
-        dfacesX[i].side = LittleLong(dfacesX[i].side);
-        dfacesX[i].lightofs = LittleLong(dfacesX[i].lightofs);
-        dfacesX[i].firstedge = LittleLong(dfacesX[i].firstedge);
-        dfacesX[i].numedges = LittleLong(dfacesX[i].numedges);
+        dfaces[i].texinfo = LittleLong(dfaces[i].texinfo);
+        dfaces[i].planenum = LittleLong(dfaces[i].planenum);
+        dfaces[i].side = LittleLong(dfaces[i].side);
+        dfaces[i].lightofs = LittleLong(dfaces[i].lightofs);
+        dfaces[i].firstedge = LittleLong(dfaces[i].firstedge);
+        dfaces[i].numedges = LittleLong(dfaces[i].numedges);
     }
 
     for (i = 0; i < numnodes; i++) {
-        dnodesX[i].planenum = LittleLong(dnodesX[i].planenum);
+        dnodes[i].planenum = LittleLong(dnodes[i].planenum);
         for (j = 0; j < 3; j++) {
-            dnodesX[i].mins[j] = LittleFloat(dnodesX[i].mins[j]);
-            dnodesX[i].maxs[j] = LittleFloat(dnodesX[i].maxs[j]);
+            dnodes[i].mins[j] = LittleFloat(dnodes[i].mins[j]);
+            dnodes[i].maxs[j] = LittleFloat(dnodes[i].maxs[j]);
         }
-        dnodesX[i].children[0] = LittleLong(dnodesX[i].children[0]);
-        dnodesX[i].children[1] = LittleLong(dnodesX[i].children[1]);
-        dnodesX[i].firstface = LittleLong(dnodesX[i].firstface);
-        dnodesX[i].numfaces = LittleLong(dnodesX[i].numfaces);
+        dnodes[i].children[0] = LittleLong(dnodes[i].children[0]);
+        dnodes[i].children[1] = LittleLong(dnodes[i].children[1]);
+        dnodes[i].firstface = LittleLong(dnodes[i].firstface);
+        dnodes[i].numfaces = LittleLong(dnodes[i].numfaces);
     }
 
     for (i = 0; i < numleafs; i++) {
-        dleafsX[i].contents = LittleLong(dleafsX[i].contents);
-        dleafsX[i].cluster = LittleLong(dleafsX[i].cluster);
-        dleafsX[i].area = LittleLong(dleafsX[i].area);
+        dleafs[i].contents = LittleLong(dleafs[i].contents);
+        dleafs[i].cluster = LittleLong(dleafs[i].cluster);
+        dleafs[i].area = LittleLong(dleafs[i].area);
         for (j = 0; j < 3; j++) {
-            dleafsX[i].mins[j] = LittleFloat(dleafsX[i].mins[j]);
-            dleafsX[i].maxs[j] = LittleFloat(dleafsX[i].maxs[j]);
+            dleafs[i].mins[j] = LittleFloat(dleafs[i].mins[j]);
+            dleafs[i].maxs[j] = LittleFloat(dleafs[i].maxs[j]);
         }
-        dleafsX[i].firstleafface = LittleLong(dleafsX[i].firstleafface);
-        dleafsX[i].numleaffaces = LittleLong(dleafsX[i].numleaffaces);
-        dleafsX[i].firstleafbrush = LittleLong(dleafsX[i].firstleafbrush);
-        dleafsX[i].numleafbrushes = LittleLong(dleafsX[i].numleafbrushes);
+        dleafs[i].firstleafface = LittleLong(dleafs[i].firstleafface);
+        dleafs[i].numleaffaces = LittleLong(dleafs[i].numleaffaces);
+        dleafs[i].firstleafbrush = LittleLong(dleafs[i].firstleafbrush);
+        dleafs[i].numleafbrushes = LittleLong(dleafs[i].numleafbrushes);
     }
 
     for (i = 0; i < numbrushsides; i++) {
-        dbrushsidesX[i].planenum = LittleLong(dbrushsidesX[i].planenum);
-        dbrushsidesX[i].texinfo = LittleLong(dbrushsidesX[i].texinfo);
+        dbrushsides[i].planenum = LittleLong(dbrushsides[i].planenum);
+        dbrushsides[i].texinfo = LittleLong(dbrushsides[i].texinfo);
     }
 
     for (i = 0; i < numleafbrushes; i++)
-        dleafbrushesX[i] = LittleLong(dleafbrushesX[i]);
+        dleafbrushes[i] = LittleLong(dleafbrushes[i]);
 
     for (i = 0; i < numleaffaces; i++)
-        dleaffacesX[i] = LittleLong(dleaffacesX[i]);
+        dleaffaces[i] = LittleLong(dleaffaces[i]);
 
     //
     // surfedges
@@ -306,8 +292,8 @@ void SwapBSPFile(qboolean todisk) {
     // edges
     //
     for (i = 0; i < numedges; i++) {
-        dedgesX[i].v[0] = LittleLong(dedgesX[i].v[0]);
-        dedgesX[i].v[1] = LittleLong(dedgesX[i].v[1]);
+        dedges[i].v[0] = LittleLong(dedges[i].v[0]);
+        dedges[i].v[1] = LittleLong(dedges[i].v[1]);
     }
 
     //
@@ -400,20 +386,20 @@ void LoadBSPFile(char *filename) {
     numvertexes = CopyLump(LUMP_VERTEXES, dvertexes, sizeof(dvertex_t));
     numplanes   = CopyLump(LUMP_PLANES, dplanes, sizeof(dplane_t));
 
-    numleafs = CopyLump(LUMP_LEAFS, dleafsX, sizeof(dleaf_tx));
-    numnodes = CopyLump(LUMP_NODES, dnodesX, sizeof(dnode_tx));
+    numleafs = CopyLump(LUMP_LEAFS, dleafs, sizeof(dleaf_t));
+    numnodes = CopyLump(LUMP_NODES, dnodes, sizeof(dnode_t));
     numtexinfo = CopyLump(LUMP_TEXINFO, texinfo, sizeof(texinfo_t));
-    numfaces = CopyLump(LUMP_FACES, dfacesX, sizeof(dface_tx));
-    numleaffaces = CopyLump(LUMP_LEAFFACES, dleaffacesX, sizeof(dleaffacesX[0]));
-    numleafbrushes = CopyLump(LUMP_LEAFBRUSHES, dleafbrushesX, sizeof(dleafbrushesX[0]));
+    numfaces = CopyLump(LUMP_FACES, dfaces, sizeof(dface_t));
+    numleaffaces = CopyLump(LUMP_LEAFFACES, dleaffaces, sizeof(dleaffaces[0]));
+    numleafbrushes = CopyLump(LUMP_LEAFBRUSHES, dleafbrushes, sizeof(dleafbrushes[0]));
 
     numsurfedges = CopyLump(LUMP_SURFEDGES, dsurfedges, sizeof(dsurfedges[0]));
 
-    numedges = CopyLump(LUMP_EDGES, dedgesX, sizeof(dedge_tx));
+    numedges = CopyLump(LUMP_EDGES, dedges, sizeof(dedge_t));
 
     numbrushes = CopyLump(LUMP_BRUSHES, dbrushes, sizeof(dbrush_t));
 
-    numbrushsides = CopyLump(LUMP_BRUSHSIDES, dbrushsidesX, sizeof(dbrushside_tx));
+    numbrushsides = CopyLump(LUMP_BRUSHSIDES, dbrushsides, sizeof(dbrushside_t));
 
 
     numareas       = CopyLump(LUMP_AREAS, dareas, sizeof(darea_t));
@@ -422,8 +408,6 @@ void LoadBSPFile(char *filename) {
     visdatasize    = CopyLump(LUMP_VISIBILITY, dvisdata, 1);
     lightdatasize  = CopyLump(LUMP_LIGHTING, dlightdata, 1);
     entdatasize    = CopyLump(LUMP_ENTITIES, dentdata, 1);
-
-    CopyLump(LUMP_POP, dpop, 1);
 
     free(header); // everything has been copied out
 
@@ -513,25 +497,25 @@ void WriteBSPFile(char *filename) {
 
     AddLump(LUMP_PLANES, dplanes, numplanes * sizeof(dplane_t));
 
-    AddLump(LUMP_LEAFS, dleafsX, numleafs * sizeof(dleaf_tx));
+    AddLump(LUMP_LEAFS, dleafs, numleafs * sizeof(dleaf_t));
 
     AddLump(LUMP_VERTEXES, dvertexes, numvertexes * sizeof(dvertex_t));
 
-    AddLump(LUMP_NODES, dnodesX, numnodes * sizeof(dnode_tx));
+    AddLump(LUMP_NODES, dnodes, numnodes * sizeof(dnode_t));
 
     AddLump(LUMP_TEXINFO, texinfo, numtexinfo * sizeof(texinfo_t));
 
-    AddLump(LUMP_FACES, dfacesX, numfaces * sizeof(dface_tx));
+    AddLump(LUMP_FACES, dfaces, numfaces * sizeof(dface_t));
 
     AddLump(LUMP_BRUSHES, dbrushes, numbrushes * sizeof(dbrush_t));
 
-    AddLump(LUMP_BRUSHSIDES, dbrushsidesX, numbrushsides * sizeof(dbrushside_tx));
-    AddLump(LUMP_LEAFFACES, dleaffacesX, numleaffaces * sizeof(dleaffacesX[0]));
-    AddLump(LUMP_LEAFBRUSHES, dleafbrushesX, numleafbrushes * sizeof(dleafbrushesX[0]));
+    AddLump(LUMP_BRUSHSIDES, dbrushsides, numbrushsides * sizeof(dbrushside_t));
+    AddLump(LUMP_LEAFFACES, dleaffaces, numleaffaces * sizeof(dleaffaces[0]));
+    AddLump(LUMP_LEAFBRUSHES, dleafbrushes, numleafbrushes * sizeof(dleafbrushes[0]));
 
     AddLump(LUMP_SURFEDGES, dsurfedges, numsurfedges * sizeof(dsurfedges[0]));
 
-    AddLump(LUMP_EDGES, dedgesX, numedges * sizeof(dedge_tx));
+    AddLump(LUMP_EDGES, dedges, numedges * sizeof(dedge_t));
 
     AddLump(LUMP_MODELS, dmodels, nummodels * sizeof(dmodel_t));
     AddLump(LUMP_AREAS, dareas, numareas * sizeof(darea_t));
@@ -540,7 +524,6 @@ void WriteBSPFile(char *filename) {
     AddLump(LUMP_LIGHTING, dlightdata, lightdatasize);
     AddLump(LUMP_VISIBILITY, dvisdata, visdatasize);
     AddLump(LUMP_ENTITIES, dentdata, entdatasize);
-    AddLump(LUMP_POP, dpop, sizeof(dpop));
 
     fseek(wadfile, 0, SEEK_SET);
     SafeWrite(wadfile, header, sizeof(dheader_t));
@@ -563,7 +546,7 @@ void PrintBSPFileSizes(void) {
     printf("models:      %7i        size: %7i\n", nummodels, (int32_t)(nummodels * sizeof(dmodel_t)));
     printf("brushes:     %7i        size: %7i\n", numbrushes, (int32_t)(numbrushes * sizeof(dbrush_t)));
 
-    printf("brushsides:  %7i        size: %7i\n", numbrushsides, (int32_t)(numbrushsides * sizeof(dbrushside_tx)));
+    printf("brushsides:  %7i        size: %7i\n", numbrushsides, (int32_t)(numbrushsides * sizeof(dbrushside_t)));
 
     printf("planes:      %7i        size: %7i\n", numplanes, (int32_t)(numplanes * sizeof(dplane_t)));
     printf("texinfo:     %7i        size: %7i\n", numtexinfo, (int32_t)(numtexinfo * sizeof(texinfo_t)));
@@ -571,12 +554,12 @@ void PrintBSPFileSizes(void) {
 
     printf("vertices:    %7i        size: %7i\n", numvertexes, (int32_t)(numvertexes * sizeof(dvertex_t)));
 
-    printf("nodes:       %7i        size: %7i\n", numnodes, (int32_t)(numnodes * sizeof(dnode_tx)));
-    printf("faces:       %7i        size: %7i\n", numfaces, (int32_t)(numfaces * sizeof(dface_tx)));
-    printf("leafs:       %7i        size: %7i\n", numleafs, (int32_t)(numleafs * sizeof(dleaf_tx)));
-    printf("leaffaces:   %7i        size: %7i\n", numleaffaces, (int32_t)(numleaffaces * sizeof(dleaffacesX[0])));
-    printf("leafbrushes: %7i        size: %7i\n", numleafbrushes, (int32_t)(numleafbrushes * sizeof(dleafbrushesX[0])));
-    printf("edges:       %7i        size: %7i\n", numedges, (int32_t)(numedges * sizeof(dedge_tx)));
+    printf("nodes:       %7i        size: %7i\n", numnodes, (int32_t)(numnodes * sizeof(dnode_t)));
+    printf("faces:       %7i        size: %7i\n", numfaces, (int32_t)(numfaces * sizeof(dface_t)));
+    printf("leafs:       %7i        size: %7i\n", numleafs, (int32_t)(numleafs * sizeof(dleaf_t)));
+    printf("leaffaces:   %7i        size: %7i\n", numleaffaces, (int32_t)(numleaffaces * sizeof(dleaffaces[0])));
+    printf("leafbrushes: %7i        size: %7i\n", numleafbrushes, (int32_t)(numleafbrushes * sizeof(dleafbrushes[0])));
+    printf("edges:       %7i        size: %7i\n", numedges, (int32_t)(numedges * sizeof(dedge_t)));
 
     printf("surfedges:   %7i        size: %7i\n", numsurfedges, (int32_t)(numsurfedges * sizeof(dsurfedges[0])));
     printf("                  lightdata size: %7i\n", lightdatasize);
@@ -586,7 +569,7 @@ void PrintBSPFileSizes(void) {
 //============================================
 
 int32_t num_entities;
-entity_t entities[MAX_MAP_ENTITIES_QBSP];
+entity_t entities[MAX_MAP_ENTITIES];
 
 void StripTrailing(char *e) {
     char *s;
@@ -639,8 +622,8 @@ qboolean ParseEntity(void) {
     if (strcmp(token, "{"))
         Error("ParseEntity: { not found");
 
-    if (num_entities == MAX_MAP_ENTITIES_QBSP)
-        Error("num_entities == MAX_MAP_ENTITIES_QBSP  (%i)", MAX_MAP_ENTITIES_QBSP);
+    if (num_entities == MAX_MAP_ENTITIES)
+        Error("num_entities == MAX_MAP_ENTITIES  (%i)", MAX_MAP_ENTITIES);
 
     mapent = &entities[num_entities];
     num_entities++;
@@ -712,7 +695,7 @@ void UnparseEntities(void) {
         strcat(end, "}\n");
         end += 2;
 
-        if (end > buf + MAX_MAP_ENTSTRING_QBSP)
+        if (end > buf + MAX_MAP_ENTSTRING)
             Error("QBSP Entity text too long");
     }
     entdatasize = end - buf + 1;

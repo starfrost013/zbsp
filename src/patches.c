@@ -21,11 +21,11 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "qrad.h"
 
-vec3_t texture_reflectivity[MAX_MAP_TEXINFO_QBSP];
+vec3_t texture_reflectivity[MAX_MAP_TEXINFO];
 
 int32_t cluster_neg_one = 0;
-float *texture_data[MAX_MAP_TEXINFO_QBSP];
-int32_t texture_sizes[MAX_MAP_TEXINFO_QBSP][2];
+float *texture_data[MAX_MAP_TEXINFO];
+int32_t texture_sizes[MAX_MAP_TEXINFO][2];
 /*
 ===================================================================
 
@@ -196,33 +196,6 @@ MAKE FACES
 WindingFromFace
 =============
 */
-winding_t *WindingFromFaceX(dface_tx *f) {
-    int32_t i;
-    int32_t se;
-    dvertex_t *dv;
-    int32_t v;
-    winding_t *w;
-
-    w            = AllocWinding(f->numedges);
-    w->numpoints = f->numedges;
-
-    for (i = 0; i < f->numedges; i++) {
-        se = dsurfedges[f->firstedge + i];
-
-        if (se < 0)
-            v = dedgesX[-se].v[1];
-        else
-            v = dedgesX[se].v[0];
-
-        dv = &dvertexes[v];
-        VectorCopy(dv->point, w->p[i]);
-    }
-
-    RemoveColinearPoints(w);
-
-    return w;
-}
-
 winding_t *WindingFromFace(dface_t *f) {
     int32_t i;
     int32_t se;
@@ -235,6 +208,7 @@ winding_t *WindingFromFace(dface_t *f) {
 
     for (i = 0; i < f->numedges; i++) {
         se = dsurfedges[f->firstedge + i];
+
         if (se < 0)
             v = dedges[-se].v[1];
         else
@@ -254,7 +228,7 @@ winding_t *WindingFromFace(dface_t *f) {
 BaseLightForFace
 =============
 */
-void BaseLightForFaceX(dface_tx *f, vec3_t color) {
+void BaseLightForFace(dface_t *f, vec3_t color) {
     texinfo_t *tx;
 
     //
@@ -271,33 +245,7 @@ void BaseLightForFaceX(dface_tx *f, vec3_t color) {
     VectorScale(texture_reflectivity[f->texinfo], tx->value, color);
 }
 
-void BaseLightForFaceI(dface_t *f, vec3_t color) {
-    texinfo_t *tx;
-
-    //
-    // check for light emited by texture
-    //
-    tx = &texinfo[f->texinfo];
-    if (!(tx->flags & SURF_LIGHT) || tx->value == 0) {
-        if (tx->flags & SURF_LIGHT) {
-            printf("Surface light has 0 intensity.\n");
-        }
-        VectorClear(color);
-        return;
-    }
-    VectorScale(texture_reflectivity[f->texinfo], tx->value, color);
-}
-
-qboolean IsSkyX(dface_tx *f) {
-    texinfo_t *tx;
-
-    tx = &texinfo[f->texinfo];
-    if (tx->flags & SURF_SKY)
-        return true;
-    return false;
-}
-
-qboolean IsSkyI(dface_t *f) {
+qboolean IsSky(dface_t *f) {
     texinfo_t *tx;
 
     tx = &texinfo[f->texinfo];
@@ -323,27 +271,26 @@ void MakePatchForFace(int32_t fn, winding_t *w) {
     totalarea += area;
 
     patch = &patches[num_patches];
-    if (num_patches == MAX_PATCHES_QBSP)
-        Error("Exceeded MAX_PATCHES_QBSP %i", MAX_PATCHES_QBSP);
-
+    if (num_patches == MAX_PATCHES)
+        Error("Exceeded MAX_PATCHES %i", MAX_PATCHES);
 
     patch->next      = face_patches[fn];
     face_patches[fn] = patch;
 
     patch->winding   = w;
 
-    dface_tx* f;
-    dleaf_tx* leaf;
+    dface_t* f;
+    dleaf_t* leaf;
 
-    f = &dfacesX[fn];
+    f = &dfaces[fn];
     if (f->side)
         patch->plane = &backplanes[f->planenum];
     else
         patch->plane = &dplanes[f->planenum];
     if (face_offset[fn][0] || face_offset[fn][1] || face_offset[fn][2]) {
         // origin offset faces must create new planes
-        if (numplanes + fakeplanes >= MAX_MAP_PLANES_QBSP)
-            Error("numplanes + fakeplanes >= MAX_MAP_PLANES_QBSP");
+        if (numplanes + fakeplanes >= MAX_MAP_PLANES)
+            Error("numplanes + fakeplanes >= MAX_MAP_PLANES");
         pl = &dplanes[numplanes + fakeplanes];
         fakeplanes++;
 
@@ -354,7 +301,7 @@ void MakePatchForFace(int32_t fn, winding_t *w) {
 
     WindingCenter(w, patch->origin);
     VectorAdd(patch->origin, patch->plane->normal, patch->origin);
-    leaf = RadPointInLeafX(patch->origin);
+    leaf = RadPointInLeaf(patch->origin);
     patch->cluster = leaf->cluster;
 
     if (patch->cluster == -1) {
@@ -366,13 +313,13 @@ void MakePatchForFace(int32_t fn, winding_t *w) {
     patch->area = area;
     if (patch->area <= 1)
         patch->area = 1;
-    patch->sky = IsSkyX(f);
+    patch->sky = IsSky(f);
 
     VectorCopy(texture_reflectivity[f->texinfo], patch->reflectivity);
 
     // non-bmodel patches can emit light
     if (fn < dmodels[0].numfaces) {
-        BaseLightForFaceX(f, patch->baselight);
+        BaseLightForFace(f, patch->baselight);
 
         ColorNormalize(patch->reflectivity, color);
 
@@ -428,9 +375,9 @@ void MakePatches(void) {
             fn              = mod->firstface + j;
             face_entity[fn] = ent;
             VectorCopy(origin, face_offset[fn]);
-            dface_tx* f;
-            f = &dfacesX[fn];
-            w = WindingFromFaceX(f);
+            dface_t* f;
+            f = &dfaces[fn];
+            w = WindingFromFace(f);
 
             for (k = 0; k < w->numpoints; k++) {
                 VectorAdd(w->p[k], origin, w->p[k]);
@@ -465,17 +412,17 @@ void FinishSplit(patch_t *patch, patch_t *newp) {
     if (newp->area <= 1)
         newp->area = 1;
 
-    dleaf_tx* leaf;
+    dleaf_t* leaf;
     WindingCenter(patch->winding, patch->origin);
     VectorAdd(patch->origin, patch->plane->normal, patch->origin);
-    leaf = RadPointInLeafX(patch->origin);
+    leaf = RadPointInLeaf(patch->origin);
     patch->cluster = leaf->cluster;
     if (patch->cluster == -1)
         qprintf("patch->cluster == -1\n");
 
     WindingCenter(newp->winding, newp->origin);
     VectorAdd(newp->origin, newp->plane->normal, newp->origin);
-    leaf = RadPointInLeafX(newp->origin);
+    leaf = RadPointInLeaf(newp->origin);
     newp->cluster = leaf->cluster;
     if (newp->cluster == -1)
         qprintf("patch->cluster == -1\n");
@@ -526,8 +473,8 @@ void SubdividePatch(patch_t *patch) {
     dist     = (mins[i] + maxs[i]) * 0.5;
     ClipWindingEpsilon(w, split, dist, ON_EPSILON, &o1, &o2);
 
-    if (num_patches == MAX_PATCHES_QBSP)
-        Error("Exceeded MAX_PATCHES_QBSP %i", MAX_PATCHES_QBSP);
+    if (num_patches == MAX_PATCHES)
+        Error("Exceeded MAX_PATCHES %i", MAX_PATCHES);
 
     newp = &patches[num_patches];
     num_patches++;
@@ -580,8 +527,8 @@ void DicePatch(patch_t *patch) {
     //
     // create a new patch
     //
-    if (num_patches == MAX_PATCHES_QBSP)
-        Error("Exceeded MAX_PATCHES_QBSP %i", MAX_PATCHES_QBSP);
+    if (num_patches == MAX_PATCHES)
+        Error("Exceeded MAX_PATCHES %i", MAX_PATCHES);
 
     newp = &patches[num_patches];
     num_patches++;

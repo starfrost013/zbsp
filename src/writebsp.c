@@ -31,7 +31,7 @@ ONLY SAVE OUT PLANES THAT ARE ACTUALLY USED AS NODES
 =========================================================
 */
 
-int32_t planeused[MAX_MAP_PLANES_QBSP];
+int32_t planeused[MAX_MAP_PLANES];
 
 /*
 ============
@@ -55,8 +55,6 @@ void EmitPlanes(void) {
         numplanes++;
     }
 }
-
-//========================================================
 
 void EmitMarkFace(dleaf_t *leaf_p, face_t *f) {
     int32_t i;
@@ -89,37 +87,6 @@ void EmitMarkFace(dleaf_t *leaf_p, face_t *f) {
     }
 }
 
-void EmitMarkFaceX(dleaf_tx *leaf_p, face_t *f) {
-    int32_t i;
-    int32_t facenum;
-
-    while (f->merged)
-        f = f->merged;
-
-    if (f->split[0]) {
-        EmitMarkFaceX(leaf_p, f->split[0]);
-        EmitMarkFaceX(leaf_p, f->split[1]);
-        return;
-    }
-
-    facenum = f->outputnumber;
-    if (facenum == -1)
-        return; // degenerate face
-
-    if (facenum < 0 || facenum >= numfaces)
-        Error("Bad leafface");
-    for (i = leaf_p->firstleafface; i < numleaffaces; i++)
-        if (dleaffacesX[i] == facenum)
-            break; // merged out face
-    if (i == numleaffaces) {
-        if (numleaffaces >= MAX_MAP_LEAFFACES_QBSP)
-            Error("MAX_MAP_LEAFFACES_QBSP");
-
-        dleaffacesX[numleaffaces] = facenum;
-        numleaffaces++;
-    }
-}
-
 /*
 ==================
 EmitLeaf
@@ -133,11 +100,11 @@ void EmitLeaf(node_t *node) {
     int32_t i;
     int32_t brushnum;
 
-    dleaf_tx* leaf_p;
-    if (numleafs >= MAX_MAP_LEAFS_QBSP)
-        Error("MAX_MAP_LEAFS_QBSP");
+    dleaf_t* leaf_p;
+    if (numleafs >= MAX_MAP_LEAFS)
+        Error("MAX_MAP_LEAFS");
 
-    leaf_p = &dleafsX[numleafs];
+    leaf_p = &dleafs[numleafs];
     numleafs++;
 
     leaf_p->contents = node->contents;
@@ -155,15 +122,15 @@ void EmitLeaf(node_t *node) {
     //
     leaf_p->firstleafbrush = numleafbrushes;
     for (b = node->brushlist; b; b = b->next) {
-        if (numleafbrushes >= MAX_MAP_LEAFBRUSHES_QBSP)
-            Error("MAX_MAP_LEAFBRUSHES_QBSP");
+        if (numleafbrushes >= MAX_MAP_LEAFBRUSHES)
+            Error("MAX_MAP_LEAFBRUSHES");
 
         brushnum = b->original - mapbrushes;
         for (i = leaf_p->firstleafbrush; i < numleafbrushes; i++)
-            if (dleafbrushesX[i] == brushnum)
+            if (dleafbrushes[i] == brushnum)
                 break;
         if (i == numleafbrushes) {
-            dleafbrushesX[numleafbrushes] = brushnum;
+            dleafbrushes[numleafbrushes] = brushnum;
             numleafbrushes++;
         }
     }
@@ -183,7 +150,7 @@ void EmitLeaf(node_t *node) {
         if (!f)
             continue; // not a visible portal
 
-        EmitMarkFaceX(leaf_p, f);
+        EmitMarkFace(leaf_p, f);
     }
 
     leaf_p->numleaffaces = numleaffaces - leaf_p->firstleafface;
@@ -210,10 +177,10 @@ void EmitFace(face_t *f) {
     // save output number so leaffaces can use
     f->outputnumber = numfaces;
 
-    dface_tx* df;
-    if (numfaces >= MAX_MAP_FACES_QBSP)
-        Error("numfaces == MAX_MAP_FACES_QBSP");
-    df = &dfacesX[numfaces];
+    dface_t* df;
+    if (numfaces >= MAX_MAP_FACES)
+        Error("numfaces == MAX_MAP_FACES");
+    df = &dfaces[numfaces];
     numfaces++;
 
     // planenum is used by qlight, but not the engine
@@ -225,8 +192,8 @@ void EmitFace(face_t *f) {
     df->texinfo = f->texinfo;
     for (i = 0; i < f->numpoints; i++) {
         e = GetEdge(f->vertexnums[i], f->vertexnums[(i + 1) % f->numpoints], f);
-        if (numsurfedges >= MAX_MAP_SURFEDGES_QBSP)
-            Error("numsurfedges == MAX_MAP_SURFEDGES_QBSP");
+        if (numsurfedges >= MAX_MAP_SURFEDGES)
+            Error("numsurfedges == MAX_MAP_SURFEDGES");
         dsurfedges[numsurfedges] = e;
         numsurfedges++;
     }
@@ -246,10 +213,10 @@ int32_t EmitDrawNode_r(node_t *node) {
         return -numleafs;
     }
 
-    dnode_tx* n;
-    if (numnodes == MAX_MAP_NODES_QBSP)
-        Error("MAX_MAP_NODES_QBSP");
-    n = &dnodesX[numnodes];
+    dnode_t* n;
+    if (numnodes == MAX_MAP_NODES)
+        Error("MAX_MAP_NODES");
+    n = &dnodes[numnodes];
     numnodes++;
 
     VectorCopy(node->mins, n->mins);
@@ -285,7 +252,7 @@ int32_t EmitDrawNode_r(node_t *node) {
         }
     }
 
-    return n - dnodesX;
+    return n - dnodes;
 }
 
 //=========================================================
@@ -402,11 +369,11 @@ void EmitBrushes(void) {
         db->firstside = numbrushsides;
         db->numsides  = b->numsides;
 
-        dbrushside_tx* cp;
+        dbrushside_t* cp;
         for (j = 0; j < b->numsides; j++) {
-            if (numbrushsides == MAX_MAP_BRUSHSIDES_QBSP)
-                Error("MAX_MAP_BRUSHSIDES_QBSP");
-            cp = &dbrushsidesX[numbrushsides];
+            if (numbrushsides == MAX_MAP_BRUSHSIDES)
+                Error("MAX_MAP_BRUSHSIDES");
+            cp = &dbrushsides[numbrushsides];
             numbrushsides++;
             cp->planenum = b->original_sides[j].planenum;
             cp->texinfo = b->original_sides[j].texinfo;
@@ -427,10 +394,10 @@ void EmitBrushes(void) {
                     if (b->original_sides[i].planenum == planenum)
                         break;
                 if (i == b->numsides) {
-                    if (numbrushsides >= MAX_MAP_BRUSHSIDES_QBSP)
-                        Error("MAX_MAP_BRUSHSIDES_QBSP");
-                    dbrushsidesX[numbrushsides].planenum = planenum;
-                    dbrushsidesX[numbrushsides].texinfo = dbrushsidesX[numbrushsides - 1].texinfo;
+                    if (numbrushsides >= MAX_MAP_BRUSHSIDES)
+                        Error("MAX_MAP_BRUSHSIDES");
+                    dbrushsides[numbrushsides].planenum = planenum;
+                    dbrushsides[numbrushsides].texinfo = dbrushsides[numbrushsides - 1].texinfo;
 
                     numbrushsides++;
                     db->numsides++;
@@ -467,7 +434,7 @@ void BeginBSPFile(void) {
     // leave leaf 0 as an error
     numleafs            = 1;
     dleafs[0].contents  = CONTENTS_SOLID;
-    dleafsX[0].contents = CONTENTS_SOLID;
+    dleafs[0].contents = CONTENTS_SOLID;
 }
 
 /*
@@ -503,10 +470,10 @@ void BeginModel(void) {
     entity_t *e;
     vec3_t mins, maxs;
 
-    if (nummodels == WARN_MAP_MODELS_QBSP)
-        printf("WARNING: nummodels may exceed protocol limit (%i)\n", WARN_MAP_MODELS_QBSP);
-    if (nummodels == MAX_MAP_MODELS_QBSP)
-        Error("nummodels exceeds MAX_MAP_MODELS_QBSP");
+    if (nummodels == WARN_MAP_MODELS)
+        printf("WARNING: nummodels may exceed protocol limit (%i)\n", WARN_MAP_MODELS);
+    if (nummodels == MAX_MAP_MODELS)
+        Error("nummodels exceeds MAX_MAP_MODELS");
 
     mod            = &dmodels[nummodels];
 

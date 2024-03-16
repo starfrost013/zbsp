@@ -48,8 +48,8 @@ void MakeTnode(int32_t nodenum) {
 
     t = tnode_p++;
 
-    dnode_tx* node;
-    node = dnodesX + nodenum;
+    dnode_t* node;
+    node = dnodes + nodenum;
     plane = dplanes + node->planenum;
 
     t->type = plane->type;
@@ -58,7 +58,7 @@ void MakeTnode(int32_t nodenum) {
 
     for (i = 0; i < 2; i++) {
         if (node->children[i] < 0) {
-            t->children[i] = (dleafsX[-node->children[i] - 1].contents & tnode_mask) | (1 << 31);
+            t->children[i] = (dleafs[-node->children[i] - 1].contents & tnode_mask) | (1 << 31);
             t->children_leaf[i] = -node->children[i] - 1;
         }
         else {
@@ -104,9 +104,9 @@ int32_t PointInNodenum(vec3_t point) {
 
     nodenum = 0;
 
-    dnode_tx* node;
+    dnode_t* node;
     while (nodenum >= 0) {
-        node = &dnodesX[nodenum];
+        node = &dnodes[nodenum];
         plane = &dplanes[node->planenum];
         dist = DotProduct(point, plane->normal) - plane->dist;
         oldnodenum = nodenum;
