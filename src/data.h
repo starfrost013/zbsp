@@ -49,8 +49,6 @@ void Cmd_Skin(void);
 void Cmd_Skinsize(void);
 void FinishModel(void);
 
-void Cmd_Inverse16Table(void);
-
 void Cmd_SpriteName(void);
 void Cmd_Load(void);
 void Cmd_SpriteFrame(void);

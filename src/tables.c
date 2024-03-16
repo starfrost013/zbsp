@@ -33,63 +33,6 @@ This isn't used anymore, but I'm keeping it around...
 */
 
 uint16_t alphamap[32 * 32 * 32];
-uint8_t inverse16to8table[65536];
-
-/*
-static int32_t FindNearestColor( uint32_t color )
-{
-        int32_t i;
-        int32_t closest_so_far = 0;
-        float closest_distance_so_far = 100000000;
-        float d;
-        float r[2], g[2], b[2];
-
-        // incoming color is assumed to be in 0xRRGGBB format
-        r[0] = ( color & 31 ) << 3;
-        g[0] = ( ( color >> 5 ) & 63 ) << 2;
-        b[0] = ( ( color >> 11 ) & 31 ) << 3;
-
-        for ( i = 0; i < 256; i++ )
-        {
-                r[1] = ( d_8to24table[i] >> 0 ) & 0xFF;
-                g[1] = ( d_8to24table[i] >> 8 ) & 0xFF;
-                b[1] = ( d_8to24table[i] >> 16 ) & 0xFF;
-
-                d = ( r[1] - r[0] ) * ( r[1] - r[0] ) +
-                        ( g[1] - g[0] ) * ( g[1] - g[0] ) +
-                        ( b[1] - b[0] ) * ( b[1] - b[0] );
-
-                if ( d < closest_distance_so_far )
-                {
-                        closest_distance_so_far = d;
-                        closest_so_far = i;
-                }
-        }
-
-        return closest_so_far;
-}
-*/
-
-extern byte BestColor(int32_t, int32_t, int32_t, int32_t, int32_t);
-
-void Inverse16_BuildTable(void) {
-    int32_t i;
-
-    /*
-    ** create the 16-to-8 table
-    */
-    for (i = 0; i < 65536; i++) {
-        int32_t r = i & 31;
-        int32_t g = (i >> 5) & 63;
-        int32_t b = (i >> 11) & 31;
-
-        r <<= 3;
-        g <<= 2;
-        b <<= 3;
-
-        inverse16to8table[i] = BestColor(r, g, b, 0, 255);
-    }
-}
 
 void Alphalight_Thread(int32_t i) {
     int32_t j;
@@ -141,21 +84,4 @@ void Cmd_Alphalight(void) {
     RunThreadsOnIndividual(32 * 32 * 32, true, Alphalight_Thread);
 
     SaveFile(savename, (byte *)alphamap, sizeof(alphamap));
-}
-
-void Cmd_Inverse16Table(void) {
-    char savename[1060];
-
-    if (g_release) {
-        sprintf(savename, "pics/16to8.dat");
-        ReleaseFile(savename);
-        return;
-    }
-
-    sprintf(savename, "%spics/16to8.dat", gamedir);
-    printf("Building inverse 16-to-8 table...\n");
-
-    Inverse16_BuildTable();
-
-    SaveFile(savename, (byte *)inverse16to8table, sizeof(inverse16to8table));
 }
