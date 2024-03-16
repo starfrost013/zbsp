@@ -52,7 +52,7 @@ int32_t GetThreadWork(void) {
     if (f != oldf) {
         oldf = f;
         if (pacifier) {
-            printf("%i...", f);
+            printf("%i%%...", f * 10);
             fflush(stdout);
         }
     }

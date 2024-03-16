@@ -649,7 +649,7 @@ void ShootLight(int32_t patchnum) {
         c_progress = 10 * patchnum / num_patches;
 
         if (c_progress != p_progress) {
-            printf("%i...", c_progress);
+            printf("%i\%%...", c_progress * 10);
             p_progress = c_progress;
         }
 
