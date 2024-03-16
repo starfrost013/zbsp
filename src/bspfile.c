@@ -373,14 +373,14 @@ void LoadBSPFile(char *filename) {
 
     switch (header->ident)
     {
-    case ZBSPHEADER:
+    case ZBSP_HEADER:
         break;
     default:
         Error("%s is not a ZBSP file.",
               filename);
     }
-    if (header->version != ZBSPVERSION)
-        Error("%s is version %i, not %i", filename, header->version, ZBSPVERSION);
+    if (header->version != ZBSP_VERSION)
+        Error("%s is version %i, not %i", filename, header->version, ZBSP_VERSION);
 
     nummodels   = CopyLump(LUMP_MODELS, dmodels, sizeof(dmodel_t));
     numvertexes = CopyLump(LUMP_VERTEXES, dvertexes, sizeof(dvertex_t));
@@ -439,10 +439,10 @@ void LoadBSPFileTexinfo(char *filename) {
     for (i = 0; i < sizeof(dheader_t) / 4; i++)
         ((int32_t *)header)[i] = LittleLong(((int32_t *)header)[i]);
 
-    if (header->ident != ZBSPHEADER)
+    if (header->ident != ZBSP_HEADER)
         Error("%s is not a ZBSP file", filename);
-    if (header->version != ZBSPVERSION)
-        Error("%s is version %i, not %i", filename, header->version, ZBSPVERSION);
+    if (header->version != ZBSP_VERSION)
+        Error("%s is version %i, not %i", filename, header->version, ZBSP_VERSION);
 
     length = header->lumps[LUMP_TEXINFO].filelen;
     ofs    = header->lumps[LUMP_TEXINFO].fileofs;
@@ -488,9 +488,9 @@ void WriteBSPFile(char *filename) {
 
     SwapBSPFile(true);
 
-    header->ident = LittleLong(ZBSPHEADER);
+    header->ident = LittleLong(ZBSP_HEADER);
 
-    header->version = LittleLong(ZBSPVERSION);
+    header->version = LittleLong(ZBSP_VERSION);
 
     wadfile         = SafeOpenWrite(filename);
     SafeWrite(wadfile, header, sizeof(dheader_t)); // overwritten later

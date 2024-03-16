@@ -166,9 +166,9 @@ typedef struct {
 */
 
 // little-endian 'ZBSP'
-#define ZBSPHEADER               ('Z' | ('B' << 8) | ('S' << 16) | ('P' << 24))
+#define ZBSP_HEADER               ('Z' | ('B' << 8) | ('S' << 16) | ('P' << 24))
 
-#define ZBSPVERSION              1
+#define ZBSP_VERSION              1
 
 // upper design bounds
 // leaffaces, leafbrushes, planes, and verts are still bounded by
@@ -200,7 +200,7 @@ typedef struct {
 #define MAX_MAP_BRUSHSIDES      4194304
 #define MAX_MAP_PORTALS         1048576
 #define MAX_MAP_SURFEDGES       4194304
-#define MAX_MAP_LIGHTING        54525952
+#define MAX_MAP_LIGHTING        54525952 // 0x3400000
 #define MAX_MAP_VISIBILITY      0x8000000
 
 // key / value pair sizes
