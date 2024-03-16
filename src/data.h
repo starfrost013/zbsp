@@ -1,6 +1,7 @@
 /*
 ===========================================================================
 Copyright (C) 1997-2006 Id Software, Inc.
+Copyright (C) 2024 starfrost
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -57,25 +58,16 @@ void FinishSprite(void);
 
 void Cmd_Grab(void);
 void Cmd_Raw(void);
-void Cmd_Mip(void);
-void Cmd_Environment(void);
-void Cmd_Colormap(void);
 
 void Cmd_File(void);
 void Cmd_Dir(void);
-void Cmd_StartWad(void);
-void Cmd_EndWad(void);
 void Cmd_Mippal(void);
-void Cmd_Mipdir(void);
+void Cmd_TextureDir(void);
 void Cmd_Alphalight(void);
-
-void Cmd_Video(void);
-
-void RemapZero(byte *pixels, byte *palette, int32_t width, int32_t height);
 
 void ReleaseFile(char *filename);
 
-extern byte *byteimage, *lbmpalette;
+extern byte *byteimage;
 extern int32_t byteimagewidth, byteimageheight;
 
 extern qboolean g_release;      // don't grab, copy output data to new tree
@@ -84,7 +76,6 @@ extern qboolean g_archive;      // don't grab, copy source data to new tree
 extern qboolean do3ds;
 //*********************** Added for LWO support
 extern qboolean dolwo;
-extern qboolean nolbm;
 //*********************** [KDT]
 extern char g_only[256];     // if set, only grab this cd
 extern qboolean g_skipmodel; // set true when a cd is not g_only

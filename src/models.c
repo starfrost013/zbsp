@@ -1,6 +1,7 @@
 /*
 ===========================================================================
 Copyright (C) 1997-2006 Id Software, Inc.
+Copyright (C) 2024 starfrost
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -1123,17 +1124,16 @@ void Cmd_Skin(void) {
     if (g_skipmodel)
         return;
 
-    sprintf(name, "%s/%s.lbm", cdarchive, token);
+    sprintf(name, "%s/%s.tga", cdarchive, token);
     strcpy(name, ExpandPathAndArchive(name));
-    //	sprintf (name, "%s/%s.lbm", cddir, token);
 
     if (TokenAvailable()) {
         GetToken(false);
-        sprintf(g_skins[model.num_skins], "%s.pcx", token);
-        sprintf(savename, "%s%s.pcx", gamedir, g_skins[model.num_skins]);
+        sprintf(g_skins[model.num_skins], "%s.tga", token);
+        sprintf(savename, "%s%s.tga", gamedir, g_skins[model.num_skins]);
     } else {
-        sprintf(savename, "%s/%s.pcx", cddir, token);
-        sprintf(g_skins[model.num_skins], "%s/%s.pcx", cdpartial, token);
+        sprintf(savename, "%s/%s.tga", cddir, token);
+        sprintf(g_skins[model.num_skins], "%s/%s.tga", cdpartial, token);
     }
 
     model.num_skins++;
@@ -1141,16 +1141,17 @@ void Cmd_Skin(void) {
     if (g_skipmodel || g_release || g_archive)
         return;
 
+    /*
+    * 
+    * **** TEMP UNTIL GL_SCREENSHOT FIXED
     // load the image
 
     //*********************** Added for LWO support
-    if (nolbm)
-        return;
+
     //*********************** [KDT]
 
     printf("loading %s\n", name);
-    Load256Image(name, &pixels, &palette, &width, &height);
-    RemapZero(pixels, palette, width, height);
+    LoadTGA(name, &pixels, &width, &height);
 
     // crop it to the proper size
     cropped = malloc(model.skinwidth * model.skinheight);
@@ -1168,6 +1169,7 @@ void Cmd_Skin(void) {
     free(pixels);
     free(palette);
     free(cropped);
+    */
 }
 
 /*

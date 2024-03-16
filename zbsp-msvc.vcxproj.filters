@@ -111,13 +111,13 @@
     <ClCompile Include="src\trilib.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\video.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\vis.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\writebsp.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\huffman.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

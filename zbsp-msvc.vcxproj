@@ -27,6 +27,7 @@
     <ClCompile Include="src\data.c" />
     <ClCompile Include="src\faces.c" />
     <ClCompile Include="src\flow.c" />
+    <ClCompile Include="src\huffman.c" />
     <ClCompile Include="src\images.c" />
     <ClCompile Include="src\l3dslib.c" />
     <ClCompile Include="src\lbmlib.c" />
@@ -51,7 +52,6 @@
     <ClCompile Include="src\trace.c" />
     <ClCompile Include="src\tree.c" />
     <ClCompile Include="src\trilib.c" />
-    <ClCompile Include="src\video.c" />
     <ClCompile Include="src\vis.c" />
     <ClCompile Include="src\writebsp.c" />
   </ItemGroup>

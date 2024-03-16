@@ -1,6 +1,7 @@
 /*
 ===========================================================================
 Copyright (C) 1997-2006 Id Software, Inc.
+Copyright (C) 2024 starfrost
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -110,10 +111,8 @@ void Cmd_Load(void) {
 
     // load the image
     printf("loading %s\n", name);
-    Load256Image(name, &byteimage, &lbmpalette,
+    LoadTGA(name, &byteimage,
                  &byteimagewidth, &byteimageheight);
-    RemapZero(byteimage, lbmpalette,
-              byteimagewidth, byteimageheight);
 }
 
 /*
@@ -162,8 +161,8 @@ void Cmd_SpriteFrame(void) {
     pframe->height   = h;
     pframe->origin_x = ox;
     pframe->origin_y = oy;
-    sprintf(pframe->name, "%s_%i.pcx", spritename, sprite.numframes);
-    sprintf(savename, "%s%s_%i.pcx", gamedir, spritename, sprite.numframes);
+    sprintf(pframe->name, "%s_%i.tga", spritename, sprite.numframes);
+    sprintf(savename, "%s%s_%i.tga", gamedir, spritename, sprite.numframes);
     sprite.numframes++;
 
     if (g_release) {
@@ -171,6 +170,7 @@ void Cmd_SpriteFrame(void) {
         return;
     }
 
+    /* **** TEMP UNTIL GL_SCREENSHOT FIXED ****
     // crop it to the proper size
     cropped = malloc(w * h);
     for (y = 0; y < h; y++) {
@@ -183,6 +183,7 @@ void Cmd_SpriteFrame(void) {
     WritePCXfile(savename, cropped, w, h, lbmpalette);
 
     free(cropped);
+    */
 }
 
 /*

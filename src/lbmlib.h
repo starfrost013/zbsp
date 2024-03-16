@@ -1,6 +1,7 @@
 /*
 ===========================================================================
 Copyright (C) 1997-2006 Id Software, Inc.
+Copyright (C) 2024 starfrost
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,11 +20,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 */
 
 // piclib.h
-
-void LoadLBM(char *filename, byte **picture, byte **palette);
-void WriteLBMfile(char *filename, byte *data, int32_t width, int32_t height, byte *palette);
-void LoadPCX(char *filename, byte **picture, byte **palette, int32_t *width, int32_t *height);
-void WritePCXfile(char *filename, byte *data, int32_t width, int32_t height, byte *palette);
 
 // loads / saves either lbm or pcx, depending on extension
 void Load256Image(char *name, byte **pixels, byte **palette,

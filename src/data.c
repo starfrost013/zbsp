@@ -1,6 +1,7 @@
 /*
 ===========================================================================
 Copyright (C) 1997-2006 Id Software, Inc.
+Copyright (C) 2024 starfrost
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -28,7 +29,6 @@ qboolean g_archive;      // don't grab, copy source data to new tree
 qboolean do3ds;
 //*********************** Added for LWO support
 qboolean dolwo;
-qboolean nolbm;
 //*********************** [KDT]
 char g_only[256];     // if set, only grab this cd
 qboolean g_skipmodel; // set true when a cd is not g_only
@@ -392,21 +392,10 @@ void ParseScript(void) {
             Cmd_Grab();
         else if (!strcmp(token, "$raw"))
             Cmd_Raw();
-        else if (!strcmp(token, "$colormap"))
-            Cmd_Colormap();
-        else if (!strcmp(token, "$mippal"))
-            Cmd_Mippal();
         else if (!strcmp(token, "$mipdir"))
-            Cmd_Mipdir();
-        else if (!strcmp(token, "$mip"))
-            Cmd_Mip();
-        else if (!strcmp(token, "$environment"))
-            Cmd_Environment();
-        //
-        // video
-        //
-        else if (!strcmp(token, "$video"))
-            Cmd_Video();
+            Cmd_TextureDir();
+        //TODO: NEW VIDEO FORMAT
+        
         //
         // misc
         //

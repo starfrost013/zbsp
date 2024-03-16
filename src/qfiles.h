@@ -1,6 +1,7 @@
 /*
 ===========================================================================
 Copyright (C) 1997-2006 Id Software, Inc.
+Copyright (C) 2024 starfrost
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -201,20 +202,6 @@ typedef struct miptex_s {
     int32_t value;
 } miptex_t;
 
-#define PAL_SIZE        256
-#define H2_MIPLEVELS        16
-
-typedef struct palette_s
-{
-	union
-	{
-		struct
-		{
-			byte r,g,b;
-		};
-	};
-} palette_t;
-
 
 /*
 ==============================================================================
@@ -402,6 +389,7 @@ typedef struct
 #define CONTENTS_TRANSLUCENT  0x10000000 // auto set if any surface has trans
 #define CONTENTS_LADDER       0x20000000
 
+//Surface flags
 #define SURF_LIGHT            0x1 // value will hold the light strength
 
 #define SURF_SLICK            0x2 // effects game physics

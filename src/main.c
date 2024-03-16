@@ -156,7 +156,6 @@ extern char g_releasedir[1024];
 extern qboolean g_archive;
 extern qboolean do3ds;
 extern qboolean dolwo;
-extern qboolean nolbm;
 extern char g_only[256];
 extern qboolean g_skipmodel;
 
@@ -437,12 +436,10 @@ int32_t main(int32_t argc, char *argv[]) {
         } else if (!strcmp(argv[i], "-3ds")) {
             do3ds = true;
             printf("loading .3ds files\n");
-        } else if (!strcmp(argv[i], "-lwo")) {
+        }
+        else if (!strcmp(argv[i], "-lwo")) {
             dolwo = true;
             printf("loading .lwo files\n");
-        } else if (!strcmp(argv[i], "-nolbm")) {
-            nolbm = true;
-            printf("skipping .lbm files\n");
         }
         else
         {

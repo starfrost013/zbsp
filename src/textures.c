@@ -1,6 +1,7 @@
 /*
 ===========================================================================
 Copyright (C) 1997-2006 Id Software, Inc.
+Copyright (C) 2024 starfrost
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -28,7 +29,8 @@ int32_t FindMiptex(char *name) {
     int32_t i, mod_fail;
     char path[1080];
     char pakpath[56];
-    miptex_t *mt;
+    byte* file_data;
+
     for (i = 0; i < nummiptex; i++)
         if (!strcmp(name, textureref[i].name)) {
             return i;
@@ -45,8 +47,8 @@ int32_t FindMiptex(char *name) {
         sprintf(pakpath, "textures/%s.tga", name);
         sprintf(path, "%s%s", moddir, pakpath);
         // load the miptex to get the flags and values
-        if (TryLoadFile(path, (void**)&mt, false) != -1 ||
-            TryLoadFileFromPak(pakpath, (void**)&mt, moddir) != -1) {
+        if (TryLoadFile(path, (void**)&file_data, false) != -1 ||
+            TryLoadFileFromPak(pakpath, (void**)&file_data, moddir) != -1) {
             /*
             * FIX FLAGS AND CONTENTS
             textureref[i].value = LittleLong(mt->value);
@@ -65,10 +67,10 @@ int32_t FindMiptex(char *name) {
         sprintf(pakpath, "textures/%s.tga", name);
         sprintf(path, "%s%s", basedir, pakpath);
 
-        if (TryLoadFile(path, (void **)&mt, false) != -1 ||
-            TryLoadFileFromPak(pakpath, (void **)&mt, basedir) != -1) {
+        if (TryLoadFile(path, (void **)&file_data, false) != -1 ||
+            TryLoadFileFromPak(pakpath, (void **)&file_data, basedir) != -1) {
             // FIX FLAGS AND CONTENTS
-            free(mt);
+            free(file_data);
             mod_fail = false;
         }
     }

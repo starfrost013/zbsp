@@ -55,6 +55,7 @@ ZBSP_OBJECTS = \
 	$(OBJ_DIR)/data.o \
 	$(OBJ_DIR)/faces.o \
 	$(OBJ_DIR)/flow.o \
+	$(OBJ_DIR)/huffman.o \
 	$(OBJ_DIR)/images.o \
 	$(OBJ_DIR)/l3dslib.o \
 	$(OBJ_DIR)/lbmlib.o \
@@ -79,7 +80,6 @@ ZBSP_OBJECTS = \
 	$(OBJ_DIR)/trace.o \
 	$(OBJ_DIR)/tree.o \
 	$(OBJ_DIR)/trilib.o \
-	$(OBJ_DIR)/video.o \
 	$(OBJ_DIR)/vis.o \
 	$(OBJ_DIR)/writebsp.o
 
@@ -108,6 +108,9 @@ $(OBJ_DIR)/faces.o : src/faces.c
 	$(CC_RUN)
 
 $(OBJ_DIR)/flow.o : src/flow.c 
+	$(CC_RUN)
+
+$(OBJ_DIR)/huffman.o : src/huffman.c 
 	$(CC_RUN)
 
 $(OBJ_DIR)/images.o : src/images.c 
@@ -180,9 +183,6 @@ $(OBJ_DIR)/tree.o : src/tree.c
 	$(CC_RUN)
 
 $(OBJ_DIR)/trilib.o : src/trilib.c 
-	$(CC_RUN)
-
-$(OBJ_DIR)/video.o : src/video.c 
 	$(CC_RUN)
 
 $(OBJ_DIR)/vis.o : src/vis.c 
