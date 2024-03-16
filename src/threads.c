@@ -85,7 +85,9 @@ void RunThreadsOnIndividual(int32_t workcnt, qboolean showpacifier, void (*func)
     RunThreadsOn(workcnt, showpacifier, ThreadWorkerFunction);
 }
 
-#ifdef USE_PTHREADS
+// 
+// MULTITHREADING CODE
+//
 
 #ifdef _WIN32
 
@@ -255,49 +257,4 @@ void RunThreadsOn(int32_t workcnt, qboolean showpacifier, void (*func)(int32_t))
 }
 
 #endif
-#endif
 
-/*
-=======================================================================
-
-  SINGLE THREAD
-
-=======================================================================
-*/
-
-#ifndef USED
-
-int32_t numthreads = 1;
-
-void ThreadSetDefault(void) {
-    numthreads = 1;
-}
-
-void ThreadLock(void) {
-}
-
-void ThreadUnlock(void) {
-}
-
-/*
-=============
-RunThreadsOn
-=============
-*/
-void RunThreadsOn(int32_t workcnt, qboolean showpacifier, void (*func)(int32_t)) {
-    int32_t start, end;
-
-    dispatch  = 0;
-    workcount = workcnt;
-    oldf      = -1;
-    pacifier  = showpacifier;
-    start     = I_FloatTime();
-
-    func(0);
-
-    end = I_FloatTime();
-    if (pacifier)
-        printf(" (%i)\n", end - start);
-}
-
-#endif
