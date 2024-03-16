@@ -1,6 +1,7 @@
 /*
 ===========================================================================
 Copyright (C) 1997-2006 Id Software, Inc.
+Copyright (C) 2024 starfrost
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,13 +19,15 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 ===========================================================================
 */
 
+#define TOOLS_VERSION "1.0.0"
+
 #include "cmdlib.h"
 #include "mathlib.h"
 #include "qfiles.h"
 #include "threads.h"
 
 static char *help_string =
-    "\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< q2tool HELP >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
+    "\nZombono BSP Compiler help:\n"
     "q2tool: bsp,vis,rad,and data combined. Supports v220 maps and qbsp extended limits.\n"
     "Usage: q2tool [mode] [options] [file]\n\n"
     "    -moddir [path]: Set a mod directory. Default is parent dir of map file.\n"
@@ -177,7 +180,7 @@ int32_t main(int32_t argc, char *argv[]) {
 
     ThreadSetDefault();
 
-    printf("\n\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< q2tool >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
+    printf("\n\nThe Zombono BSP Compiler, version " TOOLS_VERSION "\n© 2024 starfrost. Based on q2tools.\n\n");
 
     for (i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "-bsp")) {
@@ -444,8 +447,14 @@ int32_t main(int32_t argc, char *argv[]) {
         } else if (!strcmp(argv[i], "-nolbm")) {
             nolbm = true;
             printf("skipping .lbm files\n");
-        } else
+        }
+        else
+        {
+            // helpful message for people who think the map file isn't last like i did
+            if (i < argc - 1) printf("Invalid argument: %s (file must be last)\n", argv[i]);
             break;
+        }
+
     }
 
     if (argc <= 1) {
