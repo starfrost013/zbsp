@@ -392,3 +392,8 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+bin_gcc*
+bin_msvc*
+obj_gcc*
+obj_msvc*
