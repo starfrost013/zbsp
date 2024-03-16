@@ -174,7 +174,7 @@ typedef struct {
 // leaffaces, leafbrushes, planes, and verts are still bounded by
 // 
 // qb: map bounds are +/- MAX
-#define DEFAULT_MAP_SIZE         4096
+#define DEFAULT_MAP_SIZE         MAX_MAP_SIZE
 #define MAX_MAP_SIZE             32768
 #define MAX_BLOCK_SIZE           8192
 #define MAX_POINTS_HASH          MAX_MAP_SIZE / 64
