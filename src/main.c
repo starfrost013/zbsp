@@ -28,7 +28,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 static char *help_string =
     "\nZombono BSP Compiler help:\n"
-    "q2tool: bsp,vis,rad,and data combined. Supports v220 maps and qbsp extended limits.\n"
+    "q2tool: bsp, vis, rad,and data combined. Supports v220 maps and qbsp extended limits.\n"
     "Usage: q2tool [mode] [options] [file]\n\n"
     "    -moddir [path]: Set a mod directory. Default is parent dir of map file.\n"
     "    -basedir [path]: Set the directory for assets not in moddir. Default is moddir.\n"
@@ -45,7 +45,6 @@ static char *help_string =
     "    -micro #: Minimum microbrush size. Default: 0.02\n"
     "        Suggested range: 0.02 - 1.0\n"
     "    -nosubdiv: Disable subdivision.\n"
-    "    -qbsp: Greatly expanded map and entity limits for supporting engines.\n"
     "bsp debugging options:\n"
     "    -block # #: Division tree block size, square\n"
     "    -blocks # # # #: Div tree block size, rectangular\n"
