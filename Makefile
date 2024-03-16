@@ -1,5 +1,4 @@
-# Rewritten 3/15/2024 because CMake sucks
-# TODO: CLEANING !!!!
+# Rewritten 3/15-3/16/2024 because CMake sucks
 
 # Compiler defines
 CC = gcc
@@ -21,25 +20,32 @@ ifeq ($(OS), Windows_NT)
  CFLAGS_DEBUG = $(CFLAGS) -D_DEBUG -DWIN32
  CFLAGS_RELEASE = $(CFLAGS) -O3 -DNDEBUG -DWIN32
  OUT_FILE = zbsp.exe
+ DELETE_COMMAND = rmdir /s /q
  # setup compiler
 else 
  CFLAGS_DEBUG = $(CFLAGS) -D_DEBUG
  CFLAGS_RELEASE = $(CFLAGS) -O3 -DNDEBUG
  OUT_FILE = zbsp
+ DELETE_COMMAND = rm -r
 endif
 
 create_debug:
 	@-mkdir $(BIN_DIR)
 	@-mkdir $(OBJ_DIR)
 
-	$(MAKE) $(BIN_DIR)/$(OUT_FILE) BUILDDIR="$(OUT_DIR_DEBUG)" CFLAGS="$(CFLAGS_DEBUG)"
+	$(MAKE) $(BIN_DIR)/$(OUT_FILE) BUILDDIR="$(BIN_DIR)" CFLAGS="$(CFLAGS_DEBUG)"
 
 create_release:
 	@-mkdir $(BIN_DIR)
 	@-mkdir $(OBJ_DIR)
 
 # set vars here to allow per-cfg build dir
-	$(MAKE) $(BIN_DIR)/$(OUT_FILE) BUILDDIR="$(OUT_DIR_RELEASE)" CFLAGS="$(CFLAGS_RELEASE)"
+	$(MAKE) $(BIN_DIR)/$(OUT_FILE) BUILDDIR="$(BIN_DIR)" CFLAGS="$(CFLAGS_RELEASE)"
+
+# CLEANUP 
+clean:
+	@-$(DELETE_COMMAND) $(BIN_DIR)
+	@-$(DELETE_COMMAND) $(OBJ_DIR)
 
 #main targets
 debug: create_debug

@@ -64,8 +64,7 @@ typedef struct
     uint16_t transfer;
 } transfer_t;
 
-#define MAX_PATCHES             65535
-#define MAX_PATCHES        4000000 // qb: extended limit
+#define MAX_PATCHES             4000000 // qb: extended limit
 
 #define LMSTEP                  16
 
@@ -114,13 +113,6 @@ extern int32_t nodeparents[MAX_MAP_NODES];
 
 extern float lightscale;
 
-void MakeShadowSplits(void);
-
-//==============================================
-
-void BuildVisMatrix(void);
-qboolean CheckVisBit(unsigned p1, unsigned p2);
-
 //==============================================
 
 extern float ambient, maxlight;
@@ -138,8 +130,6 @@ extern qboolean noedgefix;
 extern directlight_t *directlights[MAX_MAP_LEAFS];
 
 extern byte nodehit[MAX_MAP_NODES];
-
-void BuildLightmaps(void);
 
 void BuildFacelights(int32_t facenum);
 
