@@ -9,7 +9,7 @@ CC_RUN = $(CC) $(CFLAGS_CURRENT) -o $@ -c $<
 
 CFLAGS = -DGCC -DUSE_PTHREADS
 
-LDFLAGS = -pthread
+LDFLAGS = -pthread -lm
 
 #todo: non x64 arch
 OBJ_DIR = obj_gcc_x64
