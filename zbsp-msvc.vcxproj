@@ -30,7 +30,7 @@
     <ClCompile Include="src\huffman.c" />
     <ClCompile Include="src\images.c" />
     <ClCompile Include="src\l3dslib.c" />
-    <ClCompile Include="src\lbmlib.c" />
+    <ClCompile Include="src\imglib.c" />
     <ClCompile Include="src\leakfile.c" />
     <ClCompile Include="src\lightmap.c" />
     <ClCompile Include="src\llwolib.c" />
@@ -59,7 +59,7 @@
     <ClInclude Include="src\bspfile.h" />
     <ClInclude Include="src\cmdlib.h" />
     <ClInclude Include="src\data.h" />
-    <ClInclude Include="src\lbmlib.h" />
+    <ClInclude Include="src\imglib.h" />
     <ClInclude Include="src\mathlib.h" />
     <ClInclude Include="src\mdfour.h" />
     <ClInclude Include="src\polylib.h" />

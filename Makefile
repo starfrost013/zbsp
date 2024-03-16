@@ -64,7 +64,7 @@ ZBSP_OBJECTS = \
 	$(OBJ_DIR)/huffman.o \
 	$(OBJ_DIR)/images.o \
 	$(OBJ_DIR)/l3dslib.o \
-	$(OBJ_DIR)/lbmlib.o \
+	$(OBJ_DIR)/imglib.o \
 	$(OBJ_DIR)/leakfile.o \
 	$(OBJ_DIR)/lightmap.o \
 	$(OBJ_DIR)/llwolib.o \
@@ -125,7 +125,7 @@ $(OBJ_DIR)/images.o : src/images.c
 $(OBJ_DIR)/l3dslib.o : src/l3dslib.c 
 	$(CC_RUN)
 
-$(OBJ_DIR)/lbmlib.o : src/lbmlib.c 
+$(OBJ_DIR)/imglib.o : src/imglib.c 
 	$(CC_RUN)
 
 $(OBJ_DIR)/leakfile.o : src/leakfile.c 

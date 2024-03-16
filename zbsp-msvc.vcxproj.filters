@@ -45,7 +45,7 @@
     <ClCompile Include="src\l3dslib.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\lbmlib.c">
+    <ClCompile Include="src\imglib.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\leakfile.c">
@@ -131,7 +131,7 @@
     <ClInclude Include="src\data.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\lbmlib.h">
+    <ClInclude Include="src\imglib.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\mathlib.h">

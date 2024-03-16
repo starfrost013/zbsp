@@ -19,8 +19,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 ===========================================================================
 */
 
-#ifndef __MATHLIB__
-#define __MATHLIB__
+#pragma once
 
 #define MATH_INLINE
 
@@ -237,6 +236,4 @@ static inline void AngleVector(vec3_t angles, vec3_t out) // jit
         out[2] = -sp;
     }
 }
-#endif
-
 #endif

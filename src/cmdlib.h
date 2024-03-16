@@ -21,8 +21,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 // cmdlib.h
 
-#ifndef __CMDLIB__
-#define __CMDLIB__
+#pragma once
 
 #include <stdio.h>
 #include <string.h>
@@ -132,4 +131,3 @@ typedef struct
     int32_t count;
 } cblock_t;
 
-#endif

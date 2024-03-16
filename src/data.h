@@ -18,6 +18,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 ===========================================================================
 */
+#pragma once
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -28,7 +29,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "cmdlib.h"
 #include "scriplib.h"
 #include "mathlib.h"
-#include "lbmlib.h"
+#include "imglib.h"
 #include "threads.h"
 #include "bspfile.h"
 

@@ -18,13 +18,14 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 ===========================================================================
 */
+#pragma once
 
 #include "cmdlib.h"
 #include "mathlib.h"
 #include "bspfile.h"
 #include "polylib.h"
 #include "threads.h"
-#include "lbmlib.h"
+#include "imglib.h"
 
 #ifdef _WIN32
 #include <windows.h>

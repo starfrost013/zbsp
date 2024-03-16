@@ -25,20 +25,13 @@
                 Boston, MA  02111-1307, USA
 */
 
-#ifndef _MDFOUR_H
-#define _MDFOUR_H
+#pragma once
 
-#ifndef int32
-#define int32 int32_t
-#endif
 
 #if SIZEOF_INT > 4
 #define LARGE_INT32
 #endif
 
-#ifndef uint32
-#define uint32 unsigned int32
-#endif
 
 struct mdfour {
     uint32_t A, B, C, D;
@@ -49,5 +42,3 @@ void mdfour_begin(struct mdfour *md);                          // old: MD4Init
 void mdfour_update(struct mdfour *md, uint8_t *in, int32_t n); // old: MD4Update
 void mdfour_result(struct mdfour *md, uint8_t *out);           // old: MD4Final
 void mdfour(uint8_t *out, uint8_t *in, int32_t n);
-
-#endif // _MDFOUR_H

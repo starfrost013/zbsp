@@ -22,7 +22,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 // lbmlib.c
 
 #include "cmdlib.h"
-#include "lbmlib.h"
+#include "imglib.h"
 
 /*
 ============================================================================
