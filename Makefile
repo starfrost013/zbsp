@@ -8,7 +8,7 @@ CC_RUN = $(CC) $(CFLAGS_CURRENT) -o $@ -c $<
 
 # Compiler flag defines
 
-CFLAGS = -DGCC
+CFLAGS = -DGCC -DUSE_PTHREADS
 
 LDFLAGS = -pthread
 
@@ -18,13 +18,13 @@ BIN_DIR = bin_gcc
 
 # OS specific defines
 ifeq ($(OS), Windows_NT)
- CFLAGS_DEBUG = $(CFLAGS_BASE) -D_DEBUG -DWIN32
- CFLAGS_RELEASE = $(CFLAGS_BASE) -O3 -DNDEBUG -DWIN32
+ CFLAGS_DEBUG = $(CFLAGS) -D_DEBUG -DWIN32
+ CFLAGS_RELEASE = $(CFLAGS) -O3 -DNDEBUG -DWIN32
  OUT_FILE = zbsp.exe
  # setup compiler
 else 
- CFLAGS_DEBUG = $(CFLAGS_BASE) -D_DEBUG
- CFLAGS_RELEASE = $(CFLAGS_BASE) -O3 -DNDEBUG
+ CFLAGS_DEBUG = $(CFLAGS) -D_DEBUG
+ CFLAGS_RELEASE = $(CFLAGS) -O3 -DNDEBUG
  OUT_FILE = zbsp
 endif
 

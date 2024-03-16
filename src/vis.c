@@ -240,8 +240,6 @@ void CalcVis(void) {
 
     RunThreadsOnIndividual(numportals * 2, true, BasePortalVis);
 
-    //	RunThreadsOnIndividual (numportals*2, true, BetterPortalVis);
-
     SortPortals();
 
     CalcPortalVis();
