@@ -1218,7 +1218,8 @@ void CreateDirectLights(void) {
             intensity = 300;
 
         _color = ValueForKey(e, "_color");
-        if (_color && _color[0]) {
+        if (_color && _color[0])
+        {
             sscanf(_color, "%f %f %f", &dl->color[0], &dl->color[1], &dl->color[2]);
             ColorNormalize(dl->color, dl->color);
         } else
@@ -1229,33 +1230,53 @@ void CreateDirectLights(void) {
 
         target        = ValueForKey(e, "target");
 
-        if (!strcmp(name, "light_spot") || target[0]) {
+        if (!strcmp(name, "light_spot") || target[0])
+        {
             dl->type    = emit_spotlight;
-            dl->stopdot = FloatForKey(e, "_cone");
+            float stopdot = FloatForKey(e, "_cone");
+#ifdef _MSC_VER
+            // Frankly, your guess is as good as mine.
+            // It just straight up refuses to set it on this piece of FUCKING GARBAGE unless you do THIS BULLSHIT
+            memcpy(&dl->stopdot, &stopdot, sizeof(float));
+            //dl->stopdot = stopdot;
+#else
+            dl->stopdot = stopdot;
+#endif
             if (!dl->stopdot)
                 dl->stopdot = 20;                          // qb: doubled for new calc
             dl->stopdot = cos(dl->stopdot / 90 * 3.14159); // qb: doubled for new calc
-            if (target[0]) {
+            if (target[0]
+                ) {
                 // point towards target
                 e2 = FindTargetEntity(target);
                 if (!e2)
+                {
                     printf("WARNING: light at (%i %i %i) has missing target\n",
-                           (int32_t)dl->origin[0], (int32_t)dl->origin[1], (int32_t)dl->origin[2]);
-                else {
+                        (int32_t)dl->origin[0], (int32_t)dl->origin[1], (int32_t)dl->origin[2]);
+                }
+                else
+                {
                     GetVectorForKey(e2, "origin", dest);
                     VectorSubtract(dest, dl->origin, dl->normal);
                     VectorNormalize(dl->normal, dl->normal);
                 }
-            } else {
+            } 
+            else 
+            {
                 // point down angle
                 angle = FloatForKey(e, "angle");
-                if (angle == ANGLE_UP) {
+                if (angle == ANGLE_UP)
+                {
                     dl->normal[0] = dl->normal[1] = 0;
                     dl->normal[2]                 = 1;
-                } else if (angle == ANGLE_DOWN) {
+                } 
+                else if (angle == ANGLE_DOWN) 
+                {
                     dl->normal[0] = dl->normal[1] = 0;
                     dl->normal[2]                 = -1;
-                } else {
+                } 
+                else 
+                {
                     dl->normal[2] = 0;
                     dl->normal[0] = cos(angle / 180 * 3.14159);
                     dl->normal[1] = sin(angle / 180 * 3.14159);

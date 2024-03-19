@@ -742,6 +742,7 @@ vec_t FloatForKey(entity_t *ent, char *key) {
     char *k;
 
     k = ValueForKey(ent, key);
+
     return atof(k);
 }
 
