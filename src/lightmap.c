@@ -1509,7 +1509,7 @@ static void LightContributionToPoint(directlight_t *l, vec3_t pos, int32_t noden
             dot2 = -DotProduct(delta, l->normal);
             if (dot2 <= l->stopdot)
                 return; // outside light cone
-            scale = (l->intensity - l->wait * dist) * dot * powf(dot2, 25.0f) * 15;
+            scale = abs((l->intensity - l->wait * dist) * dot * powf(dot2, 25.0f) * 15);
             // spot center to surface point attenuation
             // dot2 range is limited, so exponent is big.
             // this term is not really necessary, could have spots with sharp cutoff

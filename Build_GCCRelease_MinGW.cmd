@@ -1,0 +1,6 @@
+@echo off
+title Building ZBSP [GCC - Release]
+echo Cleaning...
+mingw32-make clean
+echo Building Release...
+mingw32-make release
