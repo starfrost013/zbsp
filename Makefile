@@ -3,7 +3,7 @@
 # Compiler defines
 CC = gcc
 #default to Linux, override later on Windows
-CC_RUN = $(CC) $(CFLAGS_CURRENT) -o $@ -c $<
+CC_RUN = $(CC) $(CFLAGS) -o $@ -c $<
 
 # Compiler flag defines
 
