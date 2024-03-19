@@ -274,7 +274,7 @@ int32_t main(int32_t argc, char *argv[]) {
             subdiv = atof(argv[i + 1]);
             if (subdiv < 16) {
                 subdiv = 16;
-                printf("rad subdiv size set to minimum size: 32\n");
+                printf("rad subdiv size set to minimum size: 16\n");
             }
             if (subdiv > 1024) {
                 subdiv = 1024;
