@@ -169,16 +169,16 @@ typedef struct {
 // little-endian 'ZBSP'
 #define ZBSP_HEADER               ('Z' | ('B' << 8) | ('S' << 16) | ('P' << 24))
 
-#define ZBSP_VERSION              1
+#define ZBSP_VERSION              2
 
 // upper design bounds
 // leaffaces, leafbrushes, planes, and verts are still bounded by
 // 
 // qb: map bounds are +/- MAX
-#define DEFAULT_MAP_SIZE         MAX_MAP_SIZE
-#define MAX_MAP_SIZE             32768
-#define MAX_BLOCK_SIZE           8192
-#define MAX_POINTS_HASH          MAX_MAP_SIZE / 64
+#define DEFAULT_MAP_SIZE        MAX_MAP_SIZE
+#define MAX_MAP_SIZE            32768
+#define MAX_BLOCK_SIZE          8192
+#define MAX_POINTS_HASH         MAX_MAP_SIZE / 64
 
 // Zombono BSP limits
 #define MAX_MAP_AREAS           256

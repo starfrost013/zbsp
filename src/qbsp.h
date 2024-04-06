@@ -42,7 +42,7 @@ typedef struct
     vec_t shift[2];
     vec_t rotate;
     vec_t scale[2];
-    char name[32];
+    char name[TEXTURE_LENGTH];
     int32_t flags;
     int32_t value;
 } brush_texture_t;

@@ -19,7 +19,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 ===========================================================================
 */
 
-#define TOOLS_VERSION "0.1.1"
+#define TOOLS_VERSION "0.1.2"
 
 #include "cmdlib.h"
 #include "mathlib.h"
