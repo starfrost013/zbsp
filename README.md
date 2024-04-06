@@ -12,7 +12,7 @@ Additional documentation, notes, and examples on social media:  https://3v.is/no
 
 GitHub Actions is currently broken, I'm working on it.
 
-# Usage: zbsp[mode] [options] [file]
+# Usage: zbsp [mode] [options] [file]
 
 ```
     -moddir [path]: Set a mod directory. Default is parent dir of map file.
