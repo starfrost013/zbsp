@@ -195,7 +195,7 @@ However, you can also use the provided Visual Studio Solution file to build usin
 Linux-  
 mkdir build  
 cd build  
-cmake ..  
+Build_GCC<Config>_Linux.sh
 
 Testing Windows in Linux with wine if default is 32-bit:  
 WINEARCH=win64 WINEPREFIX=~/64bitprefix wine q2tool.exe
