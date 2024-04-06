@@ -6,10 +6,6 @@ The map format - ZBSP, currently on version 2 - uses a modified version of the Q
 
 **This compiler cannot be used to compile Quake 2 maps. All Quake 2 map formats have been removed from the compiler.**
 
-Forked from compiler tools supporting the v220 map format by XaeroX and DarkEssence distributed with the J.A.C.K. level editor.
-
-Additional documentation, notes, and examples on social media:  https://3v.is/notice/ASqLl2Veho7QL0eX5c
-
 GitHub Actions is currently broken, I'm working on it.
 
 # Usage: zbsp [mode] [options] [file]
@@ -199,11 +195,6 @@ Linux-
 mkdir build  
 cd build  
 cmake ..  
-
-Windows-  
-mkdir buildwin  
-cd buildwin  
-cmake -DCMAKE_TOOLCHAIN_FILE=../win64.cmake .. 
 
 Testing Windows in Linux with wine if default is 32-bit:  
 WINEARCH=win64 WINEPREFIX=~/64bitprefix wine q2tool.exe
