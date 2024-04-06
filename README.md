@@ -99,7 +99,8 @@ rad debugging options:
 *   Fix for rotation using origin brush (MaxEd)
 *   Fix microbrush deformation (Jitspoe)
 *   Texinfo overflow check (MaxEd)
-		
+*   Increased texture name size limit from 32 to 80 characters
+
 -vis
 *   Increase vis data size max. Issue warning for > vanilla limit. (qbism)
 		
