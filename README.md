@@ -1,14 +1,18 @@
-# q2tools-220
-Q2 compiler tools featuring ability to bsp v220 map format, automatic phong and soft spotlights, and other enhancements.
+# The Zombono BSP Compiler
+
+A fork of [q2tools-220](https://github.com/qbism/q2tools-220) for Zombono's engine. 
+
+The map format - ZBSP, currently on version 2 - uses a modified version of the Qbism format with even more limits removed and other Zombono-specific changes.
+
+**This compiler cannot be used to compile Quake 2 maps. All Quake 2 map formats have been removed from the compiler.**
 
 Forked from compiler tools supporting the v220 map format by XaeroX and DarkEssence distributed with the J.A.C.K. level editor.
 
 Additional documentation, notes, and examples on social media:  https://3v.is/notice/ASqLl2Veho7QL0eX5c
 
-Automated development builds for Linux, Windows, Mac:  green checkmark -> details (for any build) ->summary
+GitHub Actions is currently broken, I'm working on it.
 
-
-# Usage: q2tool [mode] [options] [file]
+# Usage: zbsp[mode] [options] [file]
 
 ```
     -moddir [path]: Set a mod directory. Default is parent dir of map file.
@@ -136,7 +140,7 @@ My '.map'-files are in C:/Games/Trenchbroom/maps
 My compilers are in C:/Games/Trenchbroom/tools/
 My game/modfiles are in C:/Games/Paintball2/pball/ (my baseq2 dir)
 
-../Trenchbroom/tools/q2tool -rad -basedir C:/Games/Paintball2/pball -gamedir C:/Games/Paintball2 ../Trenchbroom/maps/mymap
+../Trenchbroom/tools/zbsp-rad -basedir C:/Games/Paintball2/pball -gamedir C:/Games/Paintball2 ../Trenchbroom/maps/mymap
 => Compiler finds all the game files and compiles the map correctly
 
 
@@ -162,6 +166,8 @@ rad
 *   _falloff property values; intensity - distance), 1 (inverse; intensity/distance), 2 (inverse-square; intensity/dist*dist)  default: 0  Note that inverse and inverse-square falloff require very high brightness values to be visible.
 
 data
+**DATA IS LARGELY DEPRECATED IN ZBSP, EXCEPT FOR ANIMATION CONVERSION - THE REST OF THE FUNCTIONALITY MAY BE REMOVED IN A FUTURE VERSION OF ZBSP**
+
 *   Runs a script file to convert assets to Q2 data types.  This example creates the colormap:
     
     $load base/pics/pal.pcx
@@ -183,11 +189,10 @@ Compile a model from individual .tri, .3ds, or .lwo frames. Example:
     //$frame walk1 walk2 walk3 walk4 walk5 walk6 walk7 walk8 walk9 walk10
     ...etc.
 
-# qbsp format:  
-Extended map limits for larger or more detailed maps.  Several 16-bit data types are changed to 32-bit.  This feature requires a supporting engine.  See common/qfiles.h for differences in limits.
+# Build from source on Windows.
+MinGW is recommended, requiring the mingw-w64, mingw-w64-i686-dev, gcc-multilib, and libz-mingw-w64-dev packages.  
 
-Usage:  Add -qbsp to the bsp command line.  vis and rad will detect QBSP automatically.  No released engine supports this yet.  See https://github.com/qbism/qb2 for prototype code.
-
+However, you can also use the provided Visual Studio Solution file to build using Microsoft Visual C++, if you wish to do so.
 
 # Build from source in Linux:
 Linux-  
@@ -199,8 +204,6 @@ Windows-
 mkdir buildwin  
 cd buildwin  
 cmake -DCMAKE_TOOLCHAIN_FILE=../win64.cmake .. 
-
-Cross-compile requires packages: mingw-w64, mingw-w64-i686-dev, gcc-multilib, and libz-mingw-w64-dev.  
 
 Testing Windows in Linux with wine if default is 32-bit:  
 WINEARCH=win64 WINEPREFIX=~/64bitprefix wine q2tool.exe
