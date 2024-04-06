@@ -22,9 +22,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 // scriplib.h
 #pragma once
 
-#ifndef __CMDLIB__
 #include "cmdlib.h"
-#endif
 
 #define MAXTOKEN 512
 

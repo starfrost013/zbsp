@@ -124,6 +124,7 @@
     <OutDir>$(SolutionDir)\bin_msvc_$(Platform)_$(Configuration)\</OutDir>
     <TargetName>zbsp</TargetName>
     <IntDir>$(SolutionDir)\obj_msvc_$(Platform)_$(Configuration)\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)\bin_msvc_$(Platform)_$(Configuration)\</OutDir>
@@ -174,6 +175,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <StackReserveSize>4194304</StackReserveSize>
+      <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

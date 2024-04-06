@@ -160,7 +160,7 @@ extern vec3_t map_mins, map_maxs;
 #define MAX_MAP_SIDES (MAX_MAP_BRUSHSIDES)
 
 extern int32_t nummapbrushsides;
-extern side_t brushsides[MAX_MAP_SIDES];
+extern side_t* brushsides;
 
 extern qboolean noprune;
 extern qboolean nodetail;

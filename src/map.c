@@ -21,13 +21,13 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "qbsp.h"
 
+side_t* brushsides;
 extern qboolean onlyents;
 
 int32_t nummapbrushes;
 mapbrush_t mapbrushes[MAX_MAP_BRUSHES];
 
 int32_t nummapbrushsides;
-side_t brushsides[MAX_MAP_SIDES];
 brush_texture_t side_brushtextures[MAX_MAP_SIDES];
 
 int32_t nummapplanes;

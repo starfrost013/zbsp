@@ -23,6 +23,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "cmdlib.h"
 #include "mathlib.h"
+#include "qbsp.h"
 #include "qfiles.h"
 #include "threads.h"
 
@@ -163,7 +164,8 @@ void RAD_ProcessArgument(const char *arg);
 void DATA_ProcessArgument(const char *arg);
 void BeginPak(char *outname);
 
-int32_t main(int32_t argc, char *argv[]) {
+int32_t main(int32_t argc, char *argv[]) 
+{
     char tgamedir[1024] = "";
     char tbasedir[1024] = "";
     char tmoddir[1024]  = "";
@@ -461,6 +463,12 @@ int32_t main(int32_t argc, char *argv[]) {
                "    -basedir [path]         -moddir [path]        -gamedir [path]\n\n");
 
         exit(1);
+    }
+
+    if (do_bsp)
+    {
+        // memory alloc so we don't breach the limits of the compiler
+        brushsides = calloc(1, sizeof(side_t) * MAX_MAP_SIDES);
     }
 
     for (; i < argc; i++) {
