@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -33,7 +33,6 @@
     <ClCompile Include="src\imglib.c" />
     <ClCompile Include="src\leakfile.c" />
     <ClCompile Include="src\lightmap.c" />
-    <ClCompile Include="src\llwolib.c" />
     <ClCompile Include="src\main.c" />
     <ClCompile Include="src\map.c" />
     <ClCompile Include="src\mathlib.c" />

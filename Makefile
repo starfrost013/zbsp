@@ -67,7 +67,6 @@ ZBSP_OBJECTS = \
 	$(OBJ_DIR)/imglib.o \
 	$(OBJ_DIR)/leakfile.o \
 	$(OBJ_DIR)/lightmap.o \
-	$(OBJ_DIR)/llwolib.o \
 	$(OBJ_DIR)/main.o \
 	$(OBJ_DIR)/map.o \
 	$(OBJ_DIR)/mathlib.o \
@@ -132,9 +131,6 @@ $(OBJ_DIR)/leakfile.o : src/leakfile.c
 	$(CC_RUN)
 
 $(OBJ_DIR)/lightmap.o : src/lightmap.c 
-	$(CC_RUN)
-
-$(OBJ_DIR)/llwolib.o : src/llwolib.c 
 	$(CC_RUN)
 
 $(OBJ_DIR)/main.o : src/main.c 

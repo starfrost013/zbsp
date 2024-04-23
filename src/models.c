@@ -247,8 +247,6 @@ float avertexnormals[NUMVERTEXNORMALS][3] =
 FILE *headerouthandle = NULL;
 
 void Load3DSTriangleList(char *filename, triangle_t **pptri, int32_t *numtriangles);
-void LoadLWOTriangleList(char *filename, triangle_t **pptri, int32_t *numtriangles);
-
 //==============================================================
 
 /*
@@ -852,10 +850,7 @@ void Cmd_Base(void) {
         Load3DSTriangleList(file1, &ptri, &model.num_tris);
         BuildST2(ptri, model.num_tris);
     } else {
-        if (dolwo)
-            LoadLWOTriangleList(file1, &ptri, &model.num_tris);
-        else
-            LoadTriangleList(file1, &ptri, &model.num_tris);
+        LoadTriangleList(file1, &ptri, &model.num_tris);
     }
 
     //
@@ -1146,7 +1141,6 @@ void Cmd_Skin(void) {
     * **** TEMP UNTIL GL_SCREENSHOT FIXED
     // load the image
 
-    //*********************** Added for LWO support
 
     //*********************** [KDT]
 

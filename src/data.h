@@ -73,8 +73,6 @@ extern qboolean g_release;      // don't grab, copy output data to new tree
 extern char g_releasedir[1024]; // c:\game\base, etc
 extern qboolean g_archive;      // don't grab, copy source data to new tree
 extern qboolean do3ds;
-//*********************** Added for LWO support
-extern qboolean dolwo;
 //*********************** [KDT]
 extern char g_only[256];     // if set, only grab this cd
 extern qboolean g_skipmodel; // set true when a cd is not g_only

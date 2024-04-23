@@ -19,7 +19,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 ===========================================================================
 */
 
-#define TOOLS_VERSION "0.1.2"
+#define TOOLS_VERSION "0.1.3"
 
 #include "cmdlib.h"
 #include "mathlib.h"
@@ -29,8 +29,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 static char *help_string =
     "\nZombono BSP Compiler help:\n"
-    "q2tool: bsp, vis, rad,and data combined. Supports v220 maps and qbsp extended limits.\n"
-    "Usage: q2tool [mode] [options] [file]\n\n"
+    "ZBSP is bsp, vis, rad, and data combined. The map format is forked from Qbism BSP38.\n"
+    "Usage: zbsp [mode] [options] [file]\n\n"
     "    -moddir [path]: Set a mod directory. Default is parent dir of map file.\n"
     "    -basedir [path]: Set the directory for assets not in moddir. Default is moddir.\n"
     "    -gamedir [path]: Set game directory, the folder with game executable.\n"
@@ -154,7 +154,6 @@ extern qboolean g_pak;
 extern char g_releasedir[1024];
 extern qboolean g_archive;
 extern qboolean do3ds;
-extern qboolean dolwo;
 extern char g_only[256];
 extern qboolean g_skipmodel;
 
@@ -428,10 +427,6 @@ int32_t main(int32_t argc, char *argv[])
             do3ds = true;
             printf("loading .3ds files\n");
         }
-        else if (!strcmp(argv[i], "-lwo")) {
-            dolwo = true;
-            printf("loading .lwo files\n");
-        }
         else
         {
             // helpful message for people who think the map file isn't last like i did
@@ -458,7 +453,7 @@ int32_t main(int32_t argc, char *argv[])
                "    -subdiv               -sunradscale #      -threads #\n\n"
                "-data\n"
                "    -archive [path]         -release [path]       -only [model]\n"
-               "    -3ds                    -lwo                  -compress\n\n"
+               "    -3ds                    -compress\n\n"
                "set paths:\n"
                "    -basedir [path]         -moddir [path]        -gamedir [path]\n\n");
 

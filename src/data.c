@@ -27,15 +27,10 @@ qboolean g_pak;          // if true, copy to pak instead of release
 char g_releasedir[1024]; // c:\game\base, etc
 qboolean g_archive;      // don't grab, copy source data to new tree
 qboolean do3ds;
-//*********************** Added for LWO support
-qboolean dolwo;
-//*********************** [KDT]
 char g_only[256];     // if set, only grab this cd
 qboolean g_skipmodel; // set true when a cd is not g_only
 
 char *ext_3ds = "3ds";
-//*********************** Added for LWO support
-char *ext_lwo = "lwo";
 //*********************** [KDT]
 char *ext_tri = "tri";
 char *trifileext;
@@ -420,10 +415,6 @@ void DATA_ProcessArgument(const char * arg) {
 
     if (do3ds)
         trifileext = ext_3ds;
-    //*********************** Added for LWO support
-    else if (dolwo)
-        trifileext = ext_lwo;
-    //*********************** [KDT]
     else
         trifileext = ext_tri;
 
