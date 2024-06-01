@@ -25,7 +25,7 @@ int32_t nummiptex;
 textureref_t textureref[MAX_MAP_TEXTURES];
 //==========================================================================
 
-int32_t FindMiptex(char *name) {
+int32_t FindTexture(char *name) {
     int32_t i, mod_fail;
     char path[1080];
     char pakpath[56];
@@ -36,7 +36,8 @@ int32_t FindMiptex(char *name) {
             return i;
         }
     if (nummiptex == MAX_MAP_TEXTURES)
-        Error("MAX_MAP_TEXTURES");
+        Error("MAX_MAP_TEXTURES exceeded");
+
     strcpy(textureref[i].name, name);
 
     mod_fail = true;
@@ -49,14 +50,7 @@ int32_t FindMiptex(char *name) {
         // load the miptex to get the flags and values
         if (TryLoadFile(path, (void**)&file_data, false) != -1 ||
             TryLoadFileFromPak(pakpath, (void**)&file_data, moddir) != -1) {
-            /*
-            * FIX FLAGS AND CONTENTS
-            textureref[i].value = LittleLong(mt->value);
-            textureref[i].flags = LittleLong(mt->flags);
-            textureref[i].contents = LittleLong(mt->contents);
-            strcpy(textureref[i].animname, mt->animname);
-            free(mt);
-            */
+
             mod_fail = false;
         }
     }
@@ -81,7 +75,7 @@ int32_t FindMiptex(char *name) {
     nummiptex++;
 
     if (textureref[i].animname[0])
-        FindMiptex(textureref[i].animname);
+        FindTexture(textureref[i].animname);
 
     return i;
 }
@@ -176,7 +170,7 @@ int32_t ApplyTexinfoOffset_UV(int32_t texinfoindex, const brush_texture_t *bt, c
     CheckTexinfoCount();
 
     // Repeat for the next animation frame
-    const int32_t mt = FindMiptex(tx.texture);
+    const int32_t mt = FindTexture(tx.texture);
     if (textureref[mt].animname[0]) {
         brush_texture_t anim = *bt;
         strcpy(anim.name, textureref[mt].animname);
@@ -224,7 +218,7 @@ int32_t TexinfoForBrushTexture_UV(brush_texture_t *bt, vec_t *UVaxis) {
     CheckTexinfoCount(); // mxd
 
     // Load the next animation
-    const int32_t mt = FindMiptex(bt->name);
+    const int32_t mt = FindTexture(bt->name);
     if (textureref[mt].animname[0]) {
         brush_texture_t anim = *bt;
         strcpy(anim.name, textureref[mt].animname);
@@ -342,7 +336,7 @@ int32_t TexinfoForBrushTexture(plane_t *plane, brush_texture_t *bt, vec3_t origi
     CheckTexinfoCount(); // mxd
 
     // load the next animation
-    const int32_t mt = FindMiptex(bt->name);
+    const int32_t mt = FindTexture(bt->name);
     if (textureref[mt].animname[0]) {
         brush_texture_t anim = *bt;
         strcpy(anim.name, textureref[mt].animname);

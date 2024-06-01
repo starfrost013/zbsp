@@ -594,11 +594,11 @@ void ParseBrush(entity_t *mapent) {
         td.scale[1]    = atof(token);
 
         // find default flags and values
-        mt             = FindMiptex(td.name);
-        td.flags       = textureref[mt].flags;
-        td.value       = textureref[mt].value;
-        side->contents = textureref[mt].contents;
-        side->surf = td.flags = textureref[mt].flags;
+        mt             = FindTexture(td.name);
+        td.flags = 0;
+        td.value = 0;
+        side->contents = 0; 
+        side->surf = td.flags = 0;
 
         if (TokenAvailable()) {
             GetToken(false);
@@ -616,7 +616,7 @@ void ParseBrush(entity_t *mapent) {
             side->contents |= CONTENTS_DETAIL;
         if (fulldetail)
             side->contents &= ~CONTENTS_DETAIL;
-        if (!(side->contents & ((LAST_VISIBLE_CONTENTS - 1) | CONTENTS_PLAYERCLIP | CONTENTS_MONSTERCLIP | CONTENTS_PROJECTILECLIP | CONTENTS_MIST)))
+        if (!(side->contents & ((LAST_REGULAR_CONTENTS - 1) | CONTENTS_PLAYERCLIP | CONTENTS_MONSTERCLIP | CONTENTS_PROJECTILECLIP | CONTENTS_MIST)))
             side->contents |= CONTENTS_SOLID;
 
         // qb: don't change SURF_SKIP contents

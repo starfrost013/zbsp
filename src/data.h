@@ -33,7 +33,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "threads.h"
 #include "bspfile.h"
 
-#define MAXTRIANGLES 2048
+#define MAXTRIANGLES 8192
+
 typedef struct {
     vec3_t verts[3], u, v;
 } triangle_t;

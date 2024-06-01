@@ -66,7 +66,7 @@ strongest visible content present
 int32_t VisibleContents(int32_t contents) {
     int32_t i;
 
-    for (i = 1; i <= LAST_VISIBLE_CONTENTS; i <<= 1)
+    for (i = 1; i <= LAST_REGULAR_CONTENTS; i <<= 1)
         if (contents & i)
             return i;
 

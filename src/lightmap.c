@@ -1238,7 +1238,6 @@ void CreateDirectLights(void) {
             // Frankly, your guess is as good as mine.
             // It just straight up refuses to set it on this piece of FUCKING GARBAGE unless you do THIS BULLSHIT
             memcpy(&dl->stopdot, &stopdot, sizeof(float));
-            //dl->stopdot = stopdot;
 #else
             dl->stopdot = stopdot;
 #endif

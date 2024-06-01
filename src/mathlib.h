@@ -230,7 +230,8 @@ static inline void AngleVector(vec3_t angles, vec3_t out) // jit
     sp    = sin(angle);
     cp    = cos(angle);
 
-    if (out) {
+    if (out) 
+    {
         out[0] = cp * cy;
         out[1] = cp * sy;
         out[2] = -sp;

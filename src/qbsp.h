@@ -191,12 +191,10 @@ int32_t FindFloatPlane(vec3_t normal, vec_t dist, int32_t bnum);
 
 // textures.c
 
+// This no longer stores flags, value and contents which are in the map file.
 typedef struct
 {
     char name[64];
-    int32_t flags;
-    int32_t value;
-    int32_t contents;
     char animname[64];
 } textureref_t;
 
@@ -204,7 +202,7 @@ typedef struct
 
 extern textureref_t textureref[MAX_MAP_TEXTURES];
 
-int32_t FindMiptex(char *name);
+int32_t FindTexture(char *name);
 
 int32_t TexinfoForBrushTexture(plane_t *plane, brush_texture_t *bt, vec3_t origin);
 // DarkEssence: function TexinfoForBrushTexture_UV for #mapversion 220
